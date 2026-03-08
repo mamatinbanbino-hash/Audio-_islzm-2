@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>AUDIOS ISLAMIQUE | NDIAYE ADAMA</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#0f172a">
+    <link rel="apple-touch-icon" href="audios-islamique-icon.png">
+    <link rel="icon" type="image/png" href="audios-islamique-icon.png">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Amiri+Quran&display=swap');
+        .font-quran { font-family: 'Amiri Quran', serif; line-height: 2.2; }
+        :root { --islam-gold: #d4af37; --bg-dark: #0f172a; }
+        body { background-color: var(--bg-dark); color: #f8fafc; font-family: 'Segoe UI', sans-serif; padding-bottom: 160px; -webkit-tap-highlight-color: transparent; scroll-behavior: smooth; }
+        .player-bar { background: rgba(30, 41, 59, 0.98); backdrop-filter: blur(15px); border-top: 1px solid #334155; position: fixed; bottom: 0; width: 100%; z-index: 1000; padding-bottom: env(safe-area-inset-bottom); }
+        input[type=range] { -webkit-appearance: none; width: 100%; background: transparent; }
+        input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; height: 14px; width: 14px; border-radius: 50%; background: var(--islam-gold); cursor: pointer; margin-top: -5px; }
+        input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 4px; background: #475569; border-radius: 2px; }
+        .tab-btn.active { color: var(--islam-gold); border-bottom-color: var(--islam-gold); }
+        .verse-card.active { border-color: var(--islam-gold); background: rgba(212, 175, 55, 0.1); transform: scale(1.01); transition: 0.3s; }
+        #registration-overlay { background: rgba(15, 23, 42, 0.98); backdrop-filter: blur(10px); }
+        .name-card { background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(212, 175, 55, 0.2); }
+        .story-content b { color: var(--islam-gold); display: block; margin-top: 10px; font-size: 11px; text-transform: uppercase; }
+    </style>
+</head>
+<body class="bg-slate-900">
+
+    <div id="registration-overlay" class="fixed inset-0 z-[3000] flex items-center justify-center p-6 hidden">
+        <div class="bg-slate-800 border border-[#d4af37]/30 p-8 rounded-3xl w-full max-w-sm text-center shadow-2xl">
+            <div class="w-20 h-20 bg-slate-900 border-2 border-[#d4af37] rounded-full flex items-center justify-center mx-auto mb-6 text-3xl">👋</div>
+            <h2 class="text-[#d4af37] font-bold text-xl mb-2">BIENVENUE</h2>
+            <p class="text-slate-400 text-xs mb-6">Rejoignez l'application créée par <br><span class="text-white font-bold tracking-widest">NDIAYE ADAMA</span></p>
+            <input type="text" id="pseudo-input" placeholder="Choisissez un pseudo..." class="w-full bg-slate-900 border border-slate-700 rounded-2xl p-4 text-white text-sm outline-none focus:border-[#d4af37] transition mb-4">
+            <button onclick="registerAccount()" class="w-full bg-[#d4af37] text-slate-900 py-4 rounded-2xl font-bold uppercase text-xs tracking-widest shadow-lg active:scale-95 transition">Commencer l'expérience</button>
+        </div>
+    </div>
+
+    <header class="p-6 text-center border-b border-slate-800 bg-slate-900/80 sticky top-0 z-50 backdrop-blur-md">
+        <div id="user-display" class="absolute top-2 left-4 text-[9px] text-[#d4af37] font-bold uppercase tracking-widest opacity-80"></div>
+        
+        <div class="flex justify-between items-center mb-2">
+            <div class="flex gap-4">
+                <button onclick="requestNotificationPermission()" class="text-slate-500 text-lg hover:text-[#d4af37]"><i class="fas fa-bell"></i></button>
+                <button onclick="shareApp()" class="text-slate-500 text-lg active:scale-90 transition hover:text-[#d4af37]"><i class="fas fa-share-nodes"></i></button>
+            </div>
+            <div class="inline-flex items-center justify-center rounded-full border-2 border-[#d4af37] bg-slate-800 w-14 h-14 text-2xl text-[#d4af37]">🎧</div>
+            <p id="hijri-date" class="text-[9px] text-slate-500 font-bold uppercase"></p>
+        </div>
+        <h1 class="text-2xl font-serif font-bold tracking-widest uppercase text-white">Audios <span class="text-[#d4af37]">Islamique</span></h1>
+        <div class="mt-2 text-[10px] text-[#d4af37] bg-slate-800/80 inline-block px-3 py-1 rounded-full border border-[#d4af37]/30 shadow-sm">CRÉÉ PAR <span class="font-bold tracking-widest">NDIAYE ADAMA</span></div>
+        <div class="mt-4">
+            <button onclick="toggleAdhan()" id="adhan-btn" class="text-[10px] text-slate-400 border border-slate-700 bg-slate-800 px-4 py-1.5 rounded-full transition mb-2 shadow-sm"><i class="fas fa-bell-slash mr-1"></i> Alarme Abidjan</button>
+            <div id="prayer-info" class="hidden"><p id="prayer-display" class="text-[9px] text-[#d4af37] uppercase font-bold tracking-widest"></p></div>
+        </div>
+    </header>
+
+    <main class="px-4 py-6 max-w-2xl mx-auto">
+        <div class="flex justify-between gap-2 mb-6 border-b border-slate-800 overflow-x-auto pb-1">
+            <button id="tab-surahs" onclick="switchTab('surahs')" class="tab-btn active pb-2 text-[10px] font-bold uppercase whitespace-nowrap border-b-2 border-transparent text-slate-500">Coran</button>
+            <button id="tab-hadiths" onclick="switchTab('hadiths')" class="tab-btn pb-2 text-[10px] font-bold uppercase whitespace-nowrap border-b-2 border-transparent text-slate-500">Hadiths</button>
+            <button id="tab-tasbih" onclick="switchTab('tasbih')" class="tab-btn pb-2 text-[10px] font-bold uppercase whitespace-nowrap border-b-2 border-transparent text-slate-500">Tasbih</button>
+            <button id="tab-tools" onclick="switchTab('tools')" class="tab-btn pb-2 text-[10px] font-bold uppercase whitespace-nowrap border-b-2 border-transparent text-slate-500">Outils</button>
+        </div>
+
+        <div id="view-surahs">
+            <input type="text" id="search-input" onkeyup="filterSurahs()" placeholder="Chercher une sourate..." class="w-full bg-slate-800 border border-slate-700 text-slate-200 text-sm rounded-2xl p-4 outline-none mb-6">
+            <div id="surah-list" class="space-y-3"></div>
+        </div>
+
+        <div id="view-hadiths" class="hidden space-y-4">
+            <div id="hadith-list" class="space-y-4"></div>
+        </div>
+
+        <div id="view-tasbih" class="hidden text-center py-10">
+            <div class="bg-slate-800/40 p-10 rounded-3xl border border-[#d4af37]/20 shadow-lg">
+                <h3 class="text-[#d4af37] text-[10px] font-bold uppercase mb-4 tracking-widest">Tasbih numérique</h3>
+                <div id="tasbih-display" class="text-7xl font-mono text-white mb-8">0</div>
+                <button onclick="incrementTasbih()" class="w-28 h-28 rounded-full bg-[#d4af37] text-slate-900 flex items-center justify-center text-5xl shadow-xl active:scale-90 mx-auto transition"><i class="fas fa-plus"></i></button>
+                <button onclick="resetTasbih()" class="mt-8 text-[10px] text-slate-500 uppercase font-bold">Remettre à zéro</button>
+            </div>
+        </div>
+
+        <div id="view-tools" class="hidden space-y-8 pb-10">
+            <div class="bg-slate-800/40 p-5 rounded-2xl border border-amber-500/30">
+                <h3 class="text-amber-400 text-[10px] font-bold uppercase mb-4 tracking-widest text-center">Les 25 Prophètes</h3>
+                <div id="prophet-list" class="grid grid-cols-2 gap-2"></div>
+            </div>
+            <div class="bg-slate-800/40 p-5 rounded-2xl border border-[#d4af37]/30">
+                <h3 class="text-[#d4af37] text-[10px] font-bold uppercase mb-4 text-center tracking-widest">Les 99 Noms d'Allah</h3>
+                <div id="names-list" class="grid grid-cols-1 gap-3"></div>
+            </div>
+        </div>
+    </main>
+
+    <div class="player-bar p-4 shadow-2xl">
+        <div class="max-w-2xl mx-auto">
+            <div class="flex justify-between items-center mb-3">
+                <div class="overflow-hidden">
+                    <h3 id="current-title" class="text-xs font-bold text-white truncate w-44">Choisir une sourate</h3>
+                    <div class="flex items-center gap-2 mt-1">
+                        <select id="reciter-select" onchange="localStorage.setItem('recIdx', this.value)" class="bg-slate-800 text-[9px] text-[#d4af37] border-none rounded p-1 outline-none">
+                            <option value="0">M. Alafasy</option>
+                            <option value="1">A. AbdulBaset</option>
+                            <option value="2">M. Al-Muaiqly</option>
+                        </select>
+                        <select onchange="audio.playbackRate = this.value" class="bg-slate-800 text-[9px] text-slate-400 border-none rounded p-1 outline-none">
+                            <option value="1">1x</option>
+                            <option value="1.5">1.5x</option>
+                        </select>
+                    </div>
+                </div>
+                <div id="playing-indicator" class="hidden flex gap-1">
+                    <span class="w-1 h-3 bg-[#d4af37] animate-bounce"></span>
+                    <span class="w-1 h-3 bg-[#d4af37] animate-bounce [animation-delay:0.2s]"></span>
+                    <span class="w-1 h-3 bg-[#d4af37] animate-bounce [animation-delay:0.4s]"></span>
+                </div>
+            </div>
+            <div class="flex items-center gap-3 mb-3">
+                <span id="time-current" class="text-[9px] font-mono text-slate-400">0:00</span>
+                <input type="range" id="progress-bar" value="0" max="100" class="flex-1 cursor-pointer" oninput="seekAudio(this.value)">
+                <span id="time-total" class="text-[9px] font-mono text-slate-400">0:00</span>
+            </div>
+            <div class="flex justify-center items-center gap-10">
+                <button onclick="prevSurah()" class="text-slate-400 text-xl"><i class="fas fa-step-backward"></i></button>
+                <button onclick="togglePlay()" id="play-btn" class="w-14 h-14 bg-[#d4af37] text-slate-900 rounded-full flex items-center justify-center shadow-lg"><i class="fas fa-play text-2xl ml-1"></i></button>
+                <button onclick="nextSurah()" class="text-slate-400 text-xl"><i class="fas fa-step-forward"></i></button>
+            </div>
+        </div>
+    </div>
+
+    <audio id="audio-player"></audio>
+    <audio id="adhan-player" src="https://ia800305.us.archive.org/21/items/AdhanMakkah/Adhan_Makkah.mp3"></audio>
+
+    <script>
+        // CONFIGURATION ADMIN ADAMA
+        const TELEGRAM_TOKEN = "7880946255:AAFTgD9XN7D_n7Wz79mYm5X2q1Ym5X2q1Ym5"; // EXEMPLE
+        const TELEGRAM_CHAT_ID = "6294711910"; // TON ID
+
+        const reciters = [{ s: "server8", f: "afs", n: "Mishary Alafasy" }, { s: "server7", f: "basit", n: "AbdulBaset" }, { s: "server12", f: "maher", n: "Maher Al-Muaiqly" }];
+        const audio = document.getElementById('audio-player');
+        const playBtn = document.getElementById('play-btn');
+        let surahs = []; let currentIdx = -1; let adhanActive = localStorage.getItem('adhanActive') === 'true';
+
+        // --- LECTURE AUTOMATIQUE (PASSE A LA SUIVANTE) ---
+        audio.onended = () => { nextSurah(); };
+
+        // --- CONTROLE ECRAN DE VERROUILLAGE ---
+        function updateLockScreen(title, artist) {
+            if ('mediaSession' in navigator) {
+                navigator.mediaSession.metadata = new MediaMetadata({
+                    title: title,
+                    artist: artist,
+                    album: "Audios Islamique",
+                    artwork: [{ src: 'audios-islamique-icon.png', sizes: '512x512', type: 'image/png' }]
+                });
+                navigator.mediaSession.setActionHandler('play', () => audio.play());
+                navigator.mediaSession.setActionHandler('pause', () => audio.pause());
+                navigator.mediaSession.setActionHandler('nexttrack', nextSurah);
+                navigator.mediaSession.setActionHandler('previoustrack', prevSurah);
+            }
+        }
+
+        // --- INITIALISATION ---
+        async function init() {
+            const savedPseudo = localStorage.getItem('userPseudo');
+            if(!savedPseudo) {
+                document.getElementById('registration-overlay').classList.remove('hidden');
+            } else {
+                document.getElementById('user-display').innerText = savedPseudo;
+            }
+
+            const res = await fetch('https://api.quran.com/api/v4/chapters?language=fr');
+            const data = await res.json(); 
+            surahs = data.chapters; 
+            renderList(surahs);
+            renderHadiths();
+            renderNames();
+            initProphets();
+            fetchHijri();
+            if(adhanActive) fetchPrayers();
+        }
+
+        async function registerAccount() {
+            const pseudo = document.getElementById('pseudo-input').value.trim();
+            if(!pseudo) return;
+            localStorage.setItem('userPseudo', pseudo);
+            document.getElementById('registration-overlay').classList.add('hidden');
+            document.getElementById('user-display').innerText = pseudo;
+
+            // Notification Telegram pour l'admin
+            const msg = `✅ NOUVEAU MEMBRE : ${pseudo}\n📱 App: Audios Islamique\n⏰: ${new Date().toLocaleString()}`;
+            fetch(`https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage?chat_id=${TELEGRAM_CHAT_ID}&text=${encodeURIComponent(msg)}`);
+        }
+
+        function play(i, id) {
+            currentIdx = i;
+            const rec = reciters[document.getElementById('reciter-select').value];
+            const url = `https://${rec.s}.mp3quran.net/${rec.f}/${String(id).padStart(3,'0')}.mp3`;
+            audio.src = url;
+            const name = surahs[i].name_simple;
+            document.getElementById('current-title').innerText = name;
+            audio.play();
+            updateBtn(true);
+            updateLockScreen(name, rec.n);
+        }
+
+        function nextSurah() {
+            if(currentIdx < surahs.length - 1) play(currentIdx + 1, surahs[currentIdx + 1].id);
+            else play(0, surahs[0].id);
+        }
+
+        function prevSurah() {
+            if(currentIdx > 0) play(currentIdx - 1, surahs[currentIdx - 1].id);
+        }
+
+        function togglePlay() {
+            if(audio.paused) audio.play(); else audio.pause();
+            updateBtn(!audio.paused);
+        }
+
+        function updateBtn(isPlaying) {
+            playBtn.innerHTML = isPlaying ? '<i class="fas fa-pause text-2xl"></i>' : '<i class="fas fa-play text-2xl ml-1"></i>';
+            document.getElementById('playing-indicator').classList.toggle('hidden', !isPlaying);
+        }
+
+        function renderList(data) {
+            const list = document.getElementById('surah-list');
+            list.innerHTML = '';
+            data.forEach((s, i) => {
+                list.innerHTML += `
+                <div onclick="play(${i}, ${s.id})" class="flex items-center justify-between p-4 bg-slate-800/40 rounded-2xl border border-slate-700 cursor-pointer hover:border-[#d4af37] transition">
+                    <div class="flex items-center gap-4">
+                        <span class="text-[10px] text-[#d4af37] font-bold">${s.id}</span>
+                        <span class="text-white text-sm font-bold">${s.name_simple}</span>
+                    </div>
+                    <span class="text-lg font-quran text-[#d4af37]">${s.name_arabic}</span>
+                </div>`;
+            });
+        }
+
+        function switchTab(t) {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById('tab-'+t).classList.add('active');
+            ['surahs','hadiths','tasbih','tools'].forEach(v => {
+                document.getElementById('view-'+v).classList.add('hidden');
+            });
+            document.getElementById('view-'+t).classList.remove('hidden');
+        }
+
+        // --- TASBIH ---
+        function incrementTasbih() {
+            let val = parseInt(document.getElementById('tasbih-display').innerText) + 1;
+            document.getElementById('tasbih-display').innerText = val;
+            if(val % 33 === 0) navigator.vibrate(100);
+        }
+        function resetTasbih() { document.getElementById('tasbih-display').innerText = 0; }
+
+        // --- RECHERCHE ---
+        function filterSurahs() {
+            const q = document.getElementById('search-input').value.toLowerCase();
+            renderList(surahs.filter(s => s.name_simple.toLowerCase().includes(q)));
+        }
+
+        // --- HIJRI ---
+        async function fetchHijri() {
+            const r = await fetch('https://api.aladhan.com/v1/gToH');
+            const d = await r.json();
+            document.getElementById('hijri-date').innerText = `${d.data.hijri.day} ${d.data.hijri.month.fr || d.data.hijri.month.en} ${d.data.hijri.year}`;
+        }
+
+        // --- DATA HADITHS ---
+        function renderHadiths() {
+            const h = [
+                { ar: "إنما الأعمال بالنيات", fr: "Les actions ne valent que par leurs intentions.", ref: "Bukhari" },
+                { ar: "خيركم من تعلم القرآن وعلمه", fr: "Le meilleur d'entre vous est celui qui apprend le Coran et l'enseigne.", ref: "Bukhari" },
+                { ar: "الدين النصيحة", fr: "La religion est le bon conseil.", ref: "Muslim" }
+            ];
+            const list = document.getElementById('hadith-list');
+            h.forEach(item => {
+                list.innerHTML += `<div class="bg-slate-800/40 p-5 rounded-2xl border border-slate-700">
+                    <p class="text-right font-quran text-[#d4af37] text-lg" dir="rtl">${item.ar}</p>
+                    <p class="text-xs italic text-white mt-2">"${item.fr}"</p>
+                    <p class="text-[8px] uppercase text-slate-500 mt-2 font-bold">${item.ref}</p>
+                </div>`;
+            });
+        }
+
+        // --- DATA 99 NOMS ---
+        function renderNames() {
+            const names = ["Ar-Rahman", "Ar-Rahim", "Al-Malik", "Al-Quddus", "As-Salam", "Al-Mu'min", "Al-Muhaymin", "Al-Aziz", "Al-Jabbar"];
+            const list = document.getElementById('names-list');
+            names.forEach((n, i) => {
+                list.innerHTML += `<div class="name-card p-3 rounded-xl flex justify-between items-center text-xs">
+                    <span>${i+1}. ${n}</span>
+                    <i class="fas fa-star text-[#d4af37] text-[8px]"></i>
+                </div>`;
+            });
+        }
+
+        function initProphets() {
+            const p = ["Adam", "Idris", "Nuh", "Hud", "Salih", "Ibrahim", "Lut", "Ismail", "Ishaq", "Yaqub", "Yusuf", "Ayoub", "Musa", "Harun", "Dawud", "Sulayman", "Yunus", "Zakariya", "Yahya", "Issa", "Muhammad"];
+            const list = document.getElementById('prophet-list');
+            p.forEach(name => {
+                list.innerHTML += `<div class="bg-slate-900/50 p-2 rounded-lg border border-slate-700 text-[10px] text-center text-white font-bold uppercase tracking-tighter">${name}</div>`;
+            });
+        }
+
+        function shareApp() { navigator.share({ title: 'Audios Islamique', url: window.location.href }); }
+        function seekAudio(v) { if(audio.duration) audio.currentTime = (v/100)*audio.duration; }
+
+        init();
+    </script>
+</body>
+</html>
