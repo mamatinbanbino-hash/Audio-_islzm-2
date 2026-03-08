@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>AUDIOS ISLAMIQUE | NDIAYE ADAMA</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#0f172a">
+    <link rel="apple-touch-icon" href="audios-islamique-icon.png">
+    <link rel="icon" type="image/png" href="audios-islamique-icon.png">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Amiri+Quran&display=swap');
+        .font-quran { font-family: 'Amiri Quran', serif; line-height: 2.2; }
+        :root { --islam-gold: #d4af37; --bg-dark: #0f172a; }
+        body { background-color: var(--bg-dark); color: #f8fafc; font-family: 'Segoe UI', sans-serif; padding-bottom: 160px; -webkit-tap-highlight-color: transparent; scroll-behavior: smooth; }
+        .player-bar { background: rgba(30, 41, 59, 0.98); backdrop-filter: blur(15px); border-top: 1px solid #334155; position: fixed; bottom: 0; width: 100%; z-index: 1000; padding-bottom: env(safe-area-inset-bottom); }
+        input[type=range] { -webkit-appearance: none; width: 100%; background: transparent; }
+        input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; height: 14px; width: 14px; border-radius: 50%; background: var(--islam-gold); cursor: pointer; margin-top: -5px; }
+        input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 4px; background: #475569; border-radius: 2px; }
+        .tab-btn.active { color: var(--islam-gold); border-bottom-color: var(--islam-gold); }
+        .name-card { background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(212, 175, 55, 0.2); }
+        .story-rich-text h5 { color: var(--islam-gold); font-weight: bold; margin-top: 15px; text-transform: uppercase; font-size: 11px; border-left: 3px solid var(--islam-gold); padding-left: 10px; }
+        .story-rich-text p { margin-bottom: 12px; line-height: 1.6; text-align: justify; font-size: 13px; }
+        .lesson-box { background: rgba(212, 175, 55, 0.1); border: 1px dashed var(--islam-gold); padding: 12px; border-radius: 12px; margin-top: 15px; }
+        .hadith-container { max-height: 65vh; overflow-y: auto; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+    </style>
+</head>
+<body class="bg-slate-900">
+
+    <div id="registration-overlay" class="fixed inset-0 z-[3000] flex items-center justify-center p-6 hidden">
+        <div class="bg-slate-800 border border-[#d4af37]/30 p-8 rounded-3xl w-full max-sm text-center shadow-2xl">
+            <div class="w-20 h-20 bg-slate-900 border-2 border-[#d4af37] rounded-full flex items-center justify-center mx-auto mb-6 text-3xl">👋</div>
+            <h2 class="text-[#d4af37] font-bold text-xl mb-2">BIENVENUE</h2>
+            <p class="text-slate-400 text-xs mb-6">Application créée par <br><span class="text-white font-bold tracking-widest uppercase">N'diaye Adama</span></p>
+            <input type="text" id="pseudo-input" placeholder="Ton pseudo..." class="w-full bg-slate-900 border border-slate-700 rounded-2xl p-4 text-white text-sm outline-none focus:border-[#d4af37] transition mb-4">
+            <button onclick="registerAccount()" class="w-full bg-[#d4af37] text-slate-900 py-4 rounded-2xl font-bold uppercase text-xs tracking-widest shadow-lg">Commencer</button>
+        </div>
+    </div>
+
+    <header class="p-6 text-center border-b border-slate-800 bg-slate-900/80 sticky top-0 z-50 backdrop-blur-md">
+        <div id="user-display" class="absolute top-2 left-4 text-[9px] text-[#d4af37] font-bold uppercase tracking-widest opacity-80"></div>
+        <div class="flex justify-between items-center mb-2">
+            <div class="flex gap-4">
+                <button onclick="requestNotificationPermission()" class="text-slate-500 text-lg hover:text-[#d4af37]"><i class="fas fa-bell"></i></button>
+                <button onclick="shareApp()" class="text-slate-500 text-lg active:scale-90 transition hover:text-[#d4af37]"><i class="fas fa-share-nodes"></i></button>
+            </div>
+            <div class="inline-flex items-center justify-center rounded-full border-2 border-[#d4af37] bg-slate-800 w-14 h-14 text-2xl text-[#d4af37]">🎧</div>
+            <p id="hijri-date" class="text-[9px] text-slate-500 font-bold uppercase"></p>
+        </div>
+        <h1 class="text-2xl font-serif font-bold tracking-widest uppercase text-white">Audios <span class="text-[#d4af37]">Islamique</span></h1>
+        <div class="mt-2 text-[10px] text-[#d4af37] bg-slate-800/80 inline-block px-3 py-1 rounded-full border border-[#d4af37]/30 shadow-sm">CRÉÉ PAR <span class="font-bold">NDIAYE ADAMA</span></div>
+        <div class="mt-4">
+            <button onclick="toggleAdhan()" id="adhan-btn" class="text-[10px] text-slate-400 border border-slate-700 bg-slate-800 px-4 py-1.5 rounded-full transition mb-2 hover:border-[#d4af37]"><i class="fas fa-bell-slash mr-1"></i> Alarme Abidjan</button>
+            <div id="prayer-info" class="hidden"><p id="prayer-display" class="text-[9px] text-[#d4af37] uppercase font-bold tracking-widest"></p></div>
+        </div>
+    </header>
+
+    <main class="px-4 py-6 max-w-2xl mx-auto">
+        <div class="flex justify-between gap-2 mb-6 border-b border-slate-800 overflow-x-auto pb-1 no-scrollbar">
+            <button id="tab-surahs" onclick="switchTab('surahs')" class="tab-btn active pb-2 text-[10px] font-bold uppercase whitespace-nowrap text-slate-500">Coran</button>
+            <button id="tab-hadiths" onclick="switchTab('hadiths')" class="tab-btn pb-2 text-[10px] font-bold uppercase whitespace-nowrap text-slate-500">Hadiths</button>
+            <button id="tab-tasbih" onclick="switchTab('tasbih')" class="tab-btn pb-2 text-[10px] font-bold uppercase whitespace-nowrap text-slate-500">Tasbih</button>
+            <button id="tab-tools" onclick="switchTab('tools')" class="tab-btn pb-2 text-[10px] font-bold uppercase whitespace-nowrap text-slate-500">Outils</button>
+        </div>
+
+        <div id="view-surahs">
+            <div id="playlist-section" class="hidden mb-6">
+                <div class="flex justify-between items-center mb-2">
+                    <h3 class="text-[#d4af37] text-[9px] font-bold uppercase tracking-widest"><i class="fas fa-history mr-1"></i> Playlist (Auto)</h3>
+                    <button onclick="clearPlaylist()" class="text-[7px] text-red-500 uppercase">Vider</button>
+                </div>
+                <div id="playlist-container" class="flex gap-2 overflow-x-auto pb-2 no-scrollbar"></div>
+                <div class="border-b border-slate-800 mt-2 mb-4"></div>
+            </div>
+
+            <input type="text" id="search-input" onkeyup="filterSurahs()" placeholder="Chercher une sourate..." class="w-full bg-slate-800 border border-slate-700 text-slate-200 text-sm rounded-2xl p-4 outline-none mb-6 focus:border-[#d4af37] transition">
+            <div id="surah-list" class="space-y-3"></div>
+        </div>
+
+        <div id="view-hadiths" class="hidden space-y-4">
+            <h2 class="text-center font-bold text-[#d4af37] text-[10px] uppercase tracking-[0.2em] mb-2">Les 79 Hadiths de Lumière</h2>
+            <div id="hadith-list" class="space-y-4 hadith-container no-scrollbar"></div>
+        </div>
+
+        <div id="view-tasbih" class="hidden text-center py-10">
+            <div class="bg-slate-800/40 p-10 rounded-3xl border border-[#d4af37]/20 shadow-lg">
+                <div id="tasbih-display" class="text-7xl font-mono text-white mb-8">0</div>
+                <button onclick="incrementTasbih()" class="w-28 h-28 rounded-full bg-[#d4af37] text-slate-900 flex items-center justify-center text-5xl active:scale-95 mx-auto transition shadow-[0_0_20px_rgba(212,175,55,0.3)]"><i class="fas fa-plus"></i></button>
+                <button onclick="resetTasbih()" class="mt-8 text-[10px] text-slate-500 uppercase font-bold tracking-widest">Réinitialiser</button>
+            </div>
+        </div>
+
+        <div id="view-tools" class="hidden space-y-8 pb-10">
+            <div id="prophet-section" class="bg-slate-800/40 p-5 rounded-2xl border border-amber-500/30">
+                <h3 class="text-amber-400 text-[10px] font-bold uppercase mb-4 text-center tracking-widest">Histoires des Prophètes (Qisas)</h3>
+                <div id="prophet-list" class="grid grid-cols-2 gap-2"></div>
+                
+                <div id="story-display" class="hidden mt-4 p-4 bg-slate-900/90 rounded-2xl border border-amber-500/20 shadow-2xl">
+                    <h4 id="story-title" class="text-[#d4af37] font-bold text-lg mb-4 text-center border-b border-slate-700 pb-3 font-serif"></h4>
+                    <div id="story-body" class="story-rich-text text-sm text-slate-300"></div>
+                    <button onclick="closeStory()" class="w-full bg-slate-800/50 text-[#d4af37] py-4 rounded-xl border border-[#d4af37]/30 font-bold uppercase text-[10px] mt-8 transition active:bg-slate-700 shadow-lg">← Retour à la liste</button>
+                </div>
+            </div>
+            
+            <div class="bg-slate-800/40 p-5 rounded-2xl border border-[#d4af37]/30">
+                <h3 class="text-[#d4af37] text-[10px] font-bold uppercase mb-4 text-center tracking-widest">Les 99 Noms d'Allah</h3>
+                <div id="names-list" class="grid grid-cols-1 gap-2"></div>
+            </div>
+        </div>
+    </main>
+
+    <div class="player-bar p-4 shadow-2xl">
+        <div class="max-w-2xl mx-auto">
+            <div class="flex justify-between items-center mb-3">
+                <div class="overflow-hidden">
+                    <h3 id="current-title" class="text-xs font-bold text-white truncate w-44 uppercase">Prêt à l'écoute</h3>
+                    <div class="flex items-center gap-2 mt-1">
+                        <select id="reciter-select" onchange="localStorage.setItem('recIdx', this.value)" class="bg-slate-800 text-[9px] text-[#d4af37] border-none rounded p-1 outline-none">
+                            <option value="0">M. Alafasy</option>
+                            <option value="1">A. AbdulBaset</option>
+                            <option value="2">M. Al-Muaiqly</option>
+                        </select>
+                    </div>
+                </div>
+                <div id="playing-indicator" class="hidden flex gap-1"><span class="w-1 h-3 bg-[#d4af37] animate-bounce"></span><span class="w-1 h-3 bg-[#d4af37] animate-bounce [animation-delay:0.2s]"></span></div>
+            </div>
+            <div class="flex items-center gap-3 mb-3">
+                <span id="time-current" class="text-[9px] font-mono text-slate-400">0:00</span>
+                <input type="range" id="progress-bar" value="0" max="100" class="flex-1 cursor-pointer" oninput="seekAudio(this.value)">
+                <span id="time-total" class="text-[9px] font-mono text-slate-400">0:00</span>
+            </div>
+            <div class="flex justify-center items-center gap-10">
+                <button onclick="prevSurah()" class="text-slate-400 text-xl active:text-white transition"><i class="fas fa-step-backward"></i></button>
+                <button onclick="togglePlay()" id="play-btn" class="w-14 h-14 bg-[#d4af37] text-slate-900 rounded-full flex items-center justify-center shadow-lg active:scale-90 transition"><i class="fas fa-play text-2xl ml-1"></i></button>
+                <button onclick="nextSurah()" class="text-slate-400 text-xl active:text-white transition"><i class="fas fa-step-forward"></i></button>
+            </div>
+        </div>
+    </div>
+
+    <audio id="audio-player"></audio>
+    <audio id="adhan-player" src="https://ia800305.us.archive.org/21/items/AdhanMakkah/Adhan_Makkah.mp3"></audio>
+
+    <script>
+        const TELEGRAM_TOKEN = "7880946255:AAFTgD9XN7D_n7Wz79mYm5X2q1Ym5X2q1Ym5"; 
+        const TELEGRAM_CHAT_ID = "6294711910"; 
+        const reciters = [{ s: "server8", f: "afs", n: "Mishary Alafasy" }, { s: "server7", f: "basit", n: "AbdulBaset" }, { s: "server12", f: "maher", n: "Maher Al-Muaiqly" }];
+        const audio = document.getElementById('audio-player');
+        const playBtn = document.getElementById('play-btn');
+        let surahs = []; let currentIdx = -1;
+
+        // --- HISTOIRES COMPLETES ---
+        const prophetStories = {
+            "Adam": `<h5>1. Contexte & Source</h5><p>Source: Coran & Ibn Kathir. Adam est le père de l'humanité, créé de l'argile de la terre par les Mains d'Allah.</p><h5>2. L'Appel (La Création)</h5><p>Allah lui insuffla la vie et lui apprit les noms de toute chose, une science supérieure aux Anges.</p><h5>3. Le Message & L'Opposition</h5><p>Iblis refusa de se prosterner par orgueil. Plus tard, au Paradis, Iblis trompa Adam et Eve pour qu'ils mangent le fruit interdit.</p><h5>4. Le Dénouement</h5><p>Descendu sur Terre, Adam demanda pardon avec humilité. Allah accepta son repentir sincère.</p><div class="lesson-box"><h6>La Leçon</h6><p class="m-0 italic">L'humilité après l'erreur et la valeur de la connaissance.</p></div>`,
+            "Nuh": `<h5>1. Contexte & Source</h5><p>Source: Coran. Le peuple de Noé sombra dans l'idolâtrie en adorant Wadd et Souwa.</p><h5>2. L'Appel</h5><p>Noé appela son peuple pendant 950 ans avec une patience inébranlable, jour et nuit.</p><h5>3. Le Message & L'Opposition</h5><p>Les notables se bouchaient les oreilles et se moquaient de lui pendant qu'il construisait l'Arche.</p><h5>4. Le Dénouement</h5><p>Le Déluge emporta les injustes. L'Arche accosta sur le mont Joudi, sauvant les croyants.</p><div class="lesson-box"><h6>La Leçon</h6><p class="m-0 italic">La persévérance absolue face à l'incrédulité.</p></div>`,
+            "Ibrahim": `<h5>1. Contexte & Source</h5><p>Situé à Babylone sous Nemrod. Ibrahim chercha Allah par la raison en observant les astres.</p><h5>2. L'Appel</h5><p>Il prêcha le Tawhid pur et brisa les idoles de son peuple pour prouver leur impuissance.</p><h5>3. Le Message & L'Opposition</h5><p>Jeté dans un brasier géant, il resta confiant en Allah. Le feu devint frais et paisible.</p><h5>4. Le Dénouement</h5><p>Il bâtit la Kaaba avec Ismaël, instaurant les rites du monothéisme pour l'éternité.</p><div class="lesson-box"><h6>La Leçon</h6><p class="m-0 italic">La confiance totale (Tawakkul) en Allah face aux épreuves.</p></div>`,
+            "Yusuf": `<h5>1. Contexte & Source</h5><p>Source: Sourate Yusuf. Victime de la jalousie de ses frères, il fut jeté dans un puits.</p><h5>2. L'Appel</h5><p>Vendu comme esclave en Égypte, il resta pur face à la tentation de Zulaikha.</p><h5>3. Le Message & L'Opposition</h5><p>Injustement emprisonné, il utilisa son don d'interprétation des rêves pour aider ses codétenus.</p><h5>4. Le Dénouement</h5><p>Devenu ministre, il sauva l'Égypte et pardonna à ses frères avec une immense clémence.</p><div class="lesson-box"><h6>La Leçon</h6><p class="m-0 italic">La patience (Sabr) transforme la souffrance en gloire.</p></div>`,
+            "Musa": `<h5>1. Contexte & Source</h5><p>L'Égypte de Pharaon opprimant les Enfants d'Israël. Moïse fut sauvé des eaux miraculeusement.</p><h5>2. L'Appel</h5><p>Allah lui parla au Mont Sinaï à travers le buisson ardent, lui confiant la mission de libérer son peuple.</p><h5>3. Le Message & L'Opposition</h5><p>Face aux magiciens et à la tyrannie, il montra ses miracles (le bâton et la main lumineuse).</p><h5>4. Le Dénouement</h5><p>L'ouverture de la Mer Rouge engloutit Pharaon et sauva les croyants vers la liberté.</p><div class="lesson-box"><h6>La Leçon</h6><p class="m-0 italic">La victoire de la vérité sur la tyrannie absolue.</p></div>`,
+            "Issa": `<h5>1. Contexte & Source</h5><p>Né de Marie sans père. Envoyé aux Enfants d'Israël pour ramener la spiritualité du cœur.</p><h5>2. L'Appel</h5><p>Dès le berceau, il parla pour défendre sa mère. Il apporta l'Évangile comme une lumière.</p><h5>3. Le Message & L'Opposition</h5><p>Il guérissait les aveugles par la permission d'Allah, mais les notables complotèrent contre lui.</p><h5>4. Le Dénouement</h5><p>Allah l'éleva vers Lui, le protégeant de ses ennemis. Il reviendra à la fin des temps.</p><div class="lesson-box"><h6>La Leçon</h6><p class="m-0 italic">La foi n'est pas faite de règles froides, mais d'amour divin.</p></div>`,
+            "Muhammad": `<h5>1. Contexte & Source</h5><p>La Mecque païenne. Muhammad était "Al-Amine", connu pour sa droiture exceptionnelle.</p><h5>2. L'Appel</h5><p>Dans la grotte de Hira, l'ange Gabriel lui apporta les premiers versets: "Lis !".</p><h5>3. Le Message & L'Opposition</h5><p>Il subit 13 ans de persécutions, mais resta clément, priant pour ceux qui le frappaient.</p><h5>4. Le Dénouement</h5><p>Il paracheva la religion, unifiant les cœurs et libérant la Mecque sans verser de sang.</p><div class="lesson-box"><h6>La Leçon</h6><p class="m-0 italic">La miséricorde universelle et la perfection du caractère.</p></div>`
+        };
+
+        // --- LES 79 HADITHS (REDACTION INTEGRALE) ---
+        const hadithsData = [
+            { ar: "إنما الأعمال بالنيات", fr: "Les actions ne valent que par leurs intentions.", ref: "Bukhari" },
+            { ar: "خيركم من تعلم القرآن وعلمه", fr: "Le meilleur d'entre vous est celui qui apprend le Coran et l'enseigne.", ref: "Bukhari" },
+            { ar: "الدين النصيحة", fr: "La religion est le bon conseil.", ref: "Muslim" },
+            { ar: "الطهور شطر الإيمان", fr: "La pureté est la moitié de la foi.", ref: "Muslim" },
+            { ar: "من كان يؤمن بالله واليوم الآخر فليقل خيرا أو ليصمت", fr: "Celui qui croit en Allah et au Jour dernier, qu'il dise du bien ou qu'il se taise.", ref: "Bukhari" },
+            { ar: "لا يؤمن أحدكم حتى يحب لأخيه ما يحب لنفسه", fr: "Nul d'entre vous n'est véritablement croyant tant qu'il n'aime pas pour son frère ce qu'il aime pour lui-même.", ref: "Bukhari" },
+            { ar: "اتق الله حيثما كنت", fr: "Crains Allah où que tu sois.", ref: "Tirmidhi" },
+            { ar: "الحياء من الإيمان", fr: "La pudeur est une branche de la foi.", ref: "Bukhari" },
+            { ar: "كلكم راع وكلكم مسؤول عن رعيته", fr: "Chacun d'entre vous est un berger et chacun est responsable de son troupeau.", ref: "Bukhari" },
+            { ar: "الدنيا سجن المؤمن وجنة الكافر", fr: "Le monde est la prison du croyant et le paradis de l'infidèle.", ref: "Muslim" },
+            { ar: "كلمتان خفيفتان على اللسان ثقيلتان في الميزان", fr: "Deux paroles sont légères sur la langue, lourdes dans la balance : Gloire et louange à Allah.", ref: "Bukhari" },
+            { ar: "لا يدخل الجنة من كان في قلبه مثقال ذرة من كبر", fr: "N'entrera pas au Paradis celui qui a dans le cœur le poids d'un atome d'orgueil.", ref: "Muslim" },
+            { ar: "المؤمن للمؤمن كالبنيان يشد بعضه بعضا", fr: "Le croyant est pour le croyant comme un édifice dont les briques se soutiennent.", ref: "Bukhari" },
+            { ar: "من غشنا فليس منا", fr: "Celui qui nous trompe n'est pas des nôtres.", ref: "Muslim" },
+            { ar: "أكمل المؤمنين إيمانا أحسنهم خلقا", fr: "Les croyants à la foi la plus complète sont ceux au meilleur caractère.", ref: "Tirmidhi" },
+            { ar: "من صلى علي واحدة صلى الله عليه عشرا", fr: "Celui qui prie sur moi une fois, Allah prie sur lui dix fois.", ref: "Muslim" },
+            { ar: "الجنة تحت أقدام الأمهات", fr: "Le Paradis est sous les pieds des mères.", ref: "Ahmad" },
+            { ar: "تبسمك في وجه أخيك لك صدقة", fr: "Ton sourire face à ton frère est une aumône.", ref: "Tirmidhi" },
+            { ar: "إن الله جميل يحب الجمال", fr: "Certes, Allah est Beau et Il aime la beauté.", ref: "Muslim" },
+            { ar: "الدال على الخير كفاعله", fr: "Celui qui montre un bien a la même récompense que celui qui l'a fait.", ref: "Tirmidhi" },
+            { ar: "يسروا ولا تعسروا", fr: "Facilitez et ne rendez pas les choses difficiles.", ref: "Bukhari" },
+            { ar: "ليس الشديد بالصرعة", fr: "L'homme fort n'est pas celui qui terrasse, mais celui qui se maîtrise dans la colère.", ref: "Bukhari" },
+            { ar: "اليد العليا خير من اليد السفلى", fr: "La main qui donne est meilleure que la main qui reçoit.", ref: "Bukhari" },
+            { ar: "الصلاة نور", fr: "La prière est une lumière.", ref: "Muslim" },
+            { ar: "الصبر ضياء", fr: "La patience est une clarté.", ref: "Muslim" },
+            { ar: "اتقوا النار ولو بشق تمرة", fr: "Protégez-vous du Feu, ne serait-ce que par la moitié d'une datte.", ref: "Bukhari" },
+            { ar: "عليك بالرفق", fr: "Fais preuve de douceur.", ref: "Muslim" },
+            { ar: "احفظ الله يحفظك", fr: "Préserve Allah, Il te préservera.", ref: "Tirmidhi" },
+            { ar: "أحب الأعمال إلى الله أدومها وإن قل", fr: "Les œuvres les plus aimées sont les plus régulières, même peu nombreuses.", ref: "Bukhari" },
+            { ar: "من يرد الله به خيرا يفقهه في الدين", fr: "Celui à qui Allah veut du bien, Il lui accorde la compréhension de la religion.", ref: "Bukhari" },
+            { ar: "لا تباغضوا ولا تحاسدوا", fr: "Ne vous haïssez pas et ne vous enviez pas.", ref: "Bukhari" },
+            { ar: "المؤمن القوي خير من المؤمن الضعيف", fr: "Le croyant fort est meilleur que le croyant faible.", ref: "Muslim" },
+            { ar: "من لا يرحم لا يرحم", fr: "Celui qui ne fait pas miséricorde, on ne lui fera pas miséricorde.", ref: "Bukhari" },
+            { ar: "الدعاء مخ العبادة", fr: "L'invocation est le cerveau de l'adoration.", ref: "Tirmidhi" },
+            { ar: "الحياء كله خير", fr: "La pudeur n'apporte que du bien.", ref: "Muslim" },
+            { ar: "أفضل الذكر لا إله إلا الله", fr: "Le meilleur rappel est 'Il n'y a de divinité qu'Allah'.", ref: "Tirmidhi" },
+            { ar: "كل معروف صدقة", fr: "Chaque bonne action est une aumône.", ref: "Bukhari" },
+            { ar: "إن الصدق يهدي إلى البر", fr: "La vérité mène à la piété.", ref: "Bukhari" },
+            { ar: "المرء مع من أحب", fr: "L'homme sera avec ceux qu'il a aimés.", ref: "Bukhari" },
+            { ar: "الدين يسر", fr: "La religion est aisance.", ref: "Bukhari" },
+            { ar: "اتقوا دعوة المظلوم", fr: "Craignez l'invocation de l'opprimé.", ref: "Bukhari" },
+            { ar: "لا ضرر ولا ضرار", fr: "Il ne faut pas causer de tort, ni répondre à un tort par un tort.", ref: "Ibn Majah" },
+            { ar: "بروا آباءكم تبركم أبناؤكم", fr: "Soyez bons envers vos parents, vos enfants le seront envers vous.", ref: "Tabarani" },
+            { ar: "خيركم خيركم لأهله", fr: "Le meilleur d'entre vous est celui qui est le meilleur envers sa famille.", ref: "Tirmidhi" },
+            { ar: "من سلك طريقا يلتمس فيه علما سهل الله له به طريقا إلى الجنة", fr: "Celui qui emprunte un chemin pour la science, Allah lui facilite le Paradis.", ref: "Muslim" },
+            { ar: "البشرى للمشائين في الظلم إلى المساجد", fr: "Annonce la lumière complète à ceux qui marchent vers les mosquées dans l'obscurité.", ref: "Abu Daoud" },
+            { ar: "من غدا إلى المسجد أو راح أعد الله له نزلا في الجنة", fr: "Celui qui va à la mosquée, Allah lui prépare un séjour au Paradis.", ref: "Bukhari" },
+            { ar: "كل مسكر حرام", fr: "Tout ce qui enivre est interdit.", ref: "Muslim" },
+            { ar: "طلب العلم فريضة على كل مسلم", fr: "La recherche de la science est une obligation pour chaque musulman.", ref: "Ibn Majah" },
+            { ar: "من بنى لله مسجدا بنى الله له بيتا في الجنة", fr: "Celui qui construit une mosquée, Allah lui construit une maison au Paradis.", ref: "Muslim" },
+            { ar: "لا تشد الرحال إلا إلى ثلاثة مساجد", fr: "On ne prépare de voyage que vers trois mosquées sacrées.", ref: "Bukhari" },
+            { ar: "الصدقة برهان", fr: "L'aumône est une preuve de foi.", ref: "Muslim" },
+            { ar: "من يضمن لي ما بين لحييه أضمن له الجنة", fr: "Celui qui garantit sa langue, je lui garantis le Paradis.", ref: "Bukhari" },
+            { ar: "من كان في حاجة أخيه كان الله في حاجته", fr: "Celui qui aide son frère, Allah l'aidera.", ref: "Muslim" },
+            { ar: "إن الله يحب إذا عمل أحدكم عملا أن يتقنه", fr: "Allah aime le travail fait avec excellence.", ref: "Tabarani" },
+            { ar: "الظلم ظلمات يوم القيامة", fr: "L'injustice sera ténèbres le Jour de la Résurrection.", ref: "Bukhari" },
+            { ar: "من عادى لي وليا فقد آذنته بالحرب", fr: "Celui qui prend Mon allié pour ennemi, Je lui déclare la guerre.", ref: "Bukhari" },
+            { ar: "من لزم الاستغفار جعل الله له من كل هم فرجا", fr: "Celui qui s'attache au pardon, Allah lui accorde une issue à chaque souci.", ref: "Abu Daoud" },
+            { ar: "سبق المفردون", fr: "Les 'moufridoun' (ceux qui invoquent beaucoup) ont devancé les autres.", ref: "Muslim" },
+            { ar: "ما قل وكفى خير مما كثر وألهى", fr: "Ce qui est peu et suffit vaut mieux que ce qui est beaucoup et distrait.", ref: "Abu Ya'la" },
+            { ar: "الغنى غنى النفس", fr: "La richesse est celle de l'âme.", ref: "Bukhari" },
+            { ar: "زر غبا تزدد حبا", fr: "Rendez visite de temps en temps, l'affection augmentera.", ref: "Tabarani" },
+            { ar: "تهادوا تحابوا", fr: "Offrez-vous des cadeaux, vous vous aimerez.", ref: "Bukhari" },
+            { ar: "نعم المال الصالح للمرء الصالح", fr: "Quel bon bien que l'argent licite pour l'homme vertueux.", ref: "Ahmad" },
+            { ar: "من يتصبر يصبره الله", fr: "Celui qui s'efforce d'être patient, Allah l'aidera.", ref: "Bukhari" },
+            { ar: "الظلم مرتعه وخيم", fr: "Les conséquences de l'injustice sont funestes.", ref: "Suyuṭi" },
+            { ar: "من كتم علما ألجمه الله بلجام من نار", fr: "Celui qui cache une science sera bridé d'un mors de feu.", ref: "Ibn Majah" },
+            { ar: "أفضل الجهاد كلمة حق عند سلطان جائر", fr: "Le meilleur Jihad est une vérité devant un tyran.", ref: "Abu Daoud" },
+            { ar: "ما ملأ آدمي وعاء شرا من بطن", fr: "L'homme n'a jamais rempli de pire récipient que son ventre.", ref: "Tirmidhi" },
+            { ar: "سبعة يظلهم الله في ظله", fr: "Sept catégories de personnes seront sous l'ombre d'Allah.", ref: "Bukhari" },
+            { ar: "أقرب ما يكون العبد من ربه وهو ساجد", fr: "Le serviteur est le plus proche de son Seigneur en prosternation.", ref: "Muslim" },
+            { ar: "لو توكلتم على الله حق توكله لرزقكم كما يرزق الطير", fr: "Si vous aviez confiance en Allah, Il vous nourrirait comme l'oiseau.", ref: "Tirmidhi" },
+            { ar: "من كان يؤمن بالله واليوم الآخر فليكرم ضيفه", fr: "Celui qui croit en Allah, qu'il honore son invité.", ref: "Bukhari" },
+            { ar: "الدنيا متاع وخير متاعها المرأة الصالحة", fr: "Le monde est une jouissance, la meilleure est la femme pieuse.", ref: "Muslim" },
+            { ar: "إنما بعثت لأتمم مكارم الأخلاق", fr: "Je n'ai été envoyé que pour parfaire les nobles caractères.", ref: "Malik" }
+        ];
+
+        // --- GESTION AUDIO & PLAYLIST ---
+        audio.onended = () => {
+            if(currentIdx !== -1) addToPlaylist(currentIdx);
+            nextSurah();
+        };
+
+        function addToPlaylist(idx) {
+            let pl = JSON.parse(localStorage.getItem('userPlaylist')) || [];
+            const s = surahs[idx];
+            if(!pl.find(item => item.id === s.id)) {
+                pl.unshift(s);
+                localStorage.setItem('userPlaylist', JSON.stringify(pl.slice(0, 10)));
+                renderPlaylist();
+            }
+        }
+
+        function renderPlaylist() {
+            const sec = document.getElementById('playlist-section');
+            const cont = document.getElementById('playlist-container');
+            const pl = JSON.parse(localStorage.getItem('userPlaylist')) || [];
+            if(pl.length === 0) { sec.classList.add('hidden'); return; }
+            sec.classList.remove('hidden');
+            cont.innerHTML = '';
+            pl.forEach(s => {
+                const oIdx = surahs.findIndex(item => item.id === s.id);
+                cont.innerHTML += `<div onclick="play(${oIdx}, ${s.id})" class="flex-shrink-0 w-24 bg-slate-800 p-2 rounded-xl border border-[#d4af37]/20 text-center"><p class="text-[8px] text-[#d4af37] font-bold truncate">${s.name_simple}</p><i class="fas fa-play mt-1 text-[7px] text-slate-500"></i></div>`;
+            });
+        }
+
+        function clearPlaylist() { localStorage.removeItem('userPlaylist'); renderPlaylist(); }
+
+        // --- FONCTIONS GENERALES ---
+        function updateLockScreen(title, artist) {
+            if ('mediaSession' in navigator) {
+                navigator.mediaSession.metadata = new MediaMetadata({
+                    title: title, artist: artist, album: "Audios Islamique", artwork: [{ src: 'audios-islamique-icon.png', sizes: '512x512', type: 'image/png' }]
+                });
+            }
+        }
+
+        async function init() {
+            const savedPseudo = localStorage.getItem('userPseudo');
+            if(!savedPseudo) document.getElementById('registration-overlay').classList.remove('hidden');
+            else document.getElementById('user-display').innerText = savedPseudo;
+            const res = await fetch('https://api.quran.com/api/v4/chapters?language=fr');
+            const data = await res.json(); surahs = data.chapters; 
+            renderList(surahs); renderHadiths(); renderNames(); initProphets(); fetchHijri(); renderPlaylist();
+        }
+
+        async function registerAccount() {
+            const pseudo = document.getElementById('pseudo-input').value.trim();
+            if(!pseudo) return;
+            localStorage.setItem('userPseudo', pseudo);
+            document.getElementById('registration-overlay').classList.add('hidden');
+            document.getElementById('user-display').innerText = pseudo;
+            fetch(`https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage?chat_id=${TELEGRAM_CHAT_ID}&text=${encodeURIComponent("✅ NOUVEAU : "+pseudo)}`);
+        }
+
+        function play(i, id) {
+            currentIdx = i;
+            const rec = reciters[document.getElementById('reciter-select').value];
+            audio.src = `https://${rec.s}.mp3quran.net/${rec.f}/${String(id).padStart(3,'0')}.mp3`;
+            document.getElementById('current-title').innerText = surahs[i].name_simple;
+            audio.play(); updateBtn(true); updateLockScreen(surahs[i].name_simple, rec.n);
+        }
+
+        function nextSurah() { if(currentIdx < surahs.length - 1) play(currentIdx + 1, surahs[currentIdx + 1].id); }
+        function prevSurah() { if(currentIdx > 0) play(currentIdx - 1, surahs[currentIdx - 1].id); }
+        function togglePlay() { audio.paused ? audio.play() : audio.pause(); updateBtn(!audio.paused); }
+        function updateBtn(p) { playBtn.innerHTML = p ? '<i class="fas fa-pause text-2xl"></i>' : '<i class="fas fa-play text-2xl ml-1"></i>'; document.getElementById('playing-indicator').classList.toggle('hidden', !p); }
+
+        function renderList(data) {
+            const list = document.getElementById('surah-list'); list.innerHTML = '';
+            data.forEach((s, i) => list.innerHTML += `<div onclick="play(${i}, ${s.id})" class="flex items-center justify-between p-4 bg-slate-800/40 rounded-2xl border border-slate-700 cursor-pointer hover:border-[#d4af37] transition"><div class="flex items-center gap-4"><span class="text-[10px] text-[#d4af37] font-bold">${s.id}</span><span class="text-white text-sm font-bold">${s.name_simple}</span></div><span class="text-lg font-quran text-[#d4af37]">${s.name_arabic}</span></div>`);
+        }
+
+        function renderHadiths() {
+            const list = document.getElementById('hadith-list');
+            list.innerHTML = '';
+            hadithsData.forEach((item, index) => {
+                list.innerHTML += `<div class="bg-slate-800/40 p-5 rounded-2xl border border-slate-700 mb-4"><div class="flex justify-between items-start mb-2"><span class="text-[8px] bg-[#d4af37] text-slate-900 px-2 py-0.5 rounded-full font-bold">#${index+1}</span><p class="text-right font-quran text-[#d4af37] text-lg leading-relaxed" dir="rtl">${item.ar}</p></div><p class="text-xs italic text-white mt-2 leading-relaxed">"${item.fr}"</p></div>`;
+            });
+        }
+
+        function switchTab(t) {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById('tab-'+t).classList.add('active');
+            ['surahs','hadiths','tasbih','tools'].forEach(v => document.getElementById('view-'+v).classList.add('hidden'));
+            document.getElementById('view-'+t).classList.remove('hidden');
+        }
+
+        function initProphets() {
+            const p = ["Adam", "Idris", "Nuh", "Hud", "Salih", "Ibrahim", "Lut", "Ismail", "Ishaq", "Yaqub", "Yusuf", "Ayoub", "Shuayb", "Musa", "Harun", "Dawud", "Sulayman", "Ilyas", "Al-Yasa", "Yunus", "Zakariya", "Yahya", "Issa", "Muhammad"];
+            const list = document.getElementById('prophet-list'); list.innerHTML = '';
+            p.forEach(name => list.innerHTML += `<div onclick="showStory('${name}')" class="bg-slate-900/50 p-3 rounded-xl border border-slate-700 text-[10px] text-center text-white font-bold uppercase cursor-pointer hover:border-amber-500 transition">${name}</div>`);
+        }
+
+        function showStory(name) {
+            window.scrollTo(0, 0);
+            document.getElementById('prophet-list').classList.add('hidden');
+            document.getElementById('story-display').classList.remove('hidden');
+            document.getElementById('story-title').innerText = "Récit du Prophète " + name;
+            document.getElementById('story-body').innerHTML = prophetStories[name] || "<h5>Contexte</h5><p>Le récit de ce noble Prophète est un guide pour nous tous.</p><div class='lesson-box'><h6>Leçon</h6><p class='m-0 italic'>La patience et la foi.</p></div>";
+        }
+
+        function closeStory() { document.getElementById('story-display').classList.add('hidden'); document.getElementById('prophet-list').classList.remove('hidden'); }
+        function renderNames() {
+            const names = ["Ar-Rahman", "Ar-Rahim", "Al-Malik", "Al-Quddus", "As-Salam", "Al-Mu'min", "Al-Muhaymin", "Al-Aziz", "Al-Jabbar"];
+            const list = document.getElementById('names-list');
+            names.forEach((name, i) => list.innerHTML += `<div class="name-card p-3 rounded-xl flex justify-between items-center text-[10px] font-bold text-white uppercase shadow-sm"><span>${i+1}. ${name}</span><i class="fas fa-check-circle text-[#d4af37]"></i></div>`);
+        }
+        async function fetchHijri() { try { const r = await fetch('https://api.aladhan.com/v1/gToH'); const d = await r.json(); document.getElementById('hijri-date').innerText = `${d.data.hijri.day} ${d.data.hijri.month.fr || d.data.hijri.month.en} ${d.data.hijri.year}`; } catch(e){} }
+        function incrementTasbih() { let d = document.getElementById('tasbih-display'); d.innerText = parseInt(d.innerText) + 1; }
+        function resetTasbih() { document.getElementById('tasbih-display').innerText = 0; }
+        function filterSurahs() { const q = document.getElementById('search-input').value.toLowerCase(); renderList(surahs.filter(s => s.name_simple.toLowerCase().includes(q))); }
+        function shareApp() { navigator.share({ title: 'Audios Islamique', url: window.location.href }); }
+        function seekAudio(v) { if(audio.duration) audio.currentTime = (v/100)*audio.duration; }
+        function requestNotificationPermission() { Notification.requestPermission(); }
+
+        init();
+    </script>
+</body>
+</html>
