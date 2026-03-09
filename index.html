@@ -29,6 +29,7 @@
         .lesson-box { background: rgba(212, 175, 55, 0.1); border: 1px dashed var(--islam-gold); padding: 12px; border-radius: 12px; margin-top: 15px; }
         .hadith-container { max-height: 65vh; overflow-y: auto; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
+        .story-rich-text h5 { color: var(--islam-gold); font-weight: bold; margin-top: 15px; margin-bottom: 5px; text-transform: uppercase; font-size: 12px; }
     </style>
 </head>
 <body class="bg-slate-900">
@@ -78,7 +79,7 @@
                 <div id="verse-viewer" class="no-scrollbar"></div>
             </div>
 
-            <div id="playlist-section" class="hidden mb-6">
+            <div id="playlist-section" class="mb-6">
                 <div class="flex justify-between items-center mb-2">
                     <h3 class="text-[#d4af37] text-[9px] font-bold uppercase tracking-widest"><i class="fas fa-history mr-1"></i> Playlist Automatique</h3>
                     <button onclick="clearPlaylist()" class="text-[7px] text-red-500 uppercase">Vider</button>
@@ -105,7 +106,7 @@
 
         <div id="view-tools" class="hidden space-y-8 pb-10">
             <div id="prophet-section" class="bg-slate-800/40 p-5 rounded-2xl border border-amber-500/30">
-                <h3 class="text-amber-400 text-[10px] font-bold uppercase mb-4 text-center tracking-widest">Histoires des Prophètes</h3>
+                <h3 class="text-amber-400 text-[10px] font-bold uppercase mb-4 text-center tracking-widest">Histoire des 25 Prophètes</h3>
                 <div id="prophet-list" class="grid grid-cols-2 gap-2"></div>
                 <div id="story-display" class="hidden mt-4 p-4 bg-slate-900/90 rounded-2xl border border-amber-500/20 shadow-2xl">
                     <h4 id="story-title" class="text-[#d4af37] font-bold text-lg mb-4 text-center font-serif"></h4>
@@ -158,21 +159,36 @@
         const playBtn = document.getElementById('play-btn');
         let surahs = []; let currentIdx = -1;
 
-        // --- LES 99 NOMS (RÉDIGÉS UN PAR UN) ---
-        const allahNames = [
-            "Ar-Rahman", "Ar-Rahim", "Al-Malik", "Al-Quddus", "As-Salam", "Al-Mu'min", "Al-Muhaymin", "Al-Aziz", "Al-Jabbar", "Al-Mutakabbir",
-            "Al-Khaliq", "Al-Bari'", "Al-Musawwir", "Al-Ghaffar", "Al-Qahhar", "Al-Wahhab", "Ar-Razzaq", "Al-Fattah", "Al-Alim", "Al-Qabid",
-            "Al-Basit", "Al-Khafid", "Ar-Rafi'", "Al-Mu'izz", "Al-Mudhill", "As-Sami'", "Al-Basir", "Al-Hakam", "Al-Adl", "Al-Latif",
-            "Al-Khabir", "Al-Halim", "Al-Azim", "Al-Ghafur", "Ash-Shakur", "Al-Ali", "Al-Kabir", "Al-Hafiz", "Al-Muqit", "Al-Hasib",
-            "Al-Jalil", "Al-Karim", "Ar-Raqib", "Al-Mujib", "Al-Wasi'", "Al-Hakim", "Al-Wadud", "Al-Majid", "Al-Ba'ith", "Ash-Shahid",
-            "Al-Haqq", "Al-Wakil", "Al-Qawi", "Al-Matin", "Al-Wali", "Al-Hamid", "Al-Muhsi", "Al-Mubdi'", "Al-Mu'id", "Al-Muhyi",
-            "Al-Mumit", "Al-Hayy", "Al-Qayyum", "Al-Wajid", "Al-Majid", "Al-Wahid", "Al-Ahad", "As-Samad", "Al-Qadir", "Al-Muqtadir",
-            "Al-Muqaddim", "Al-Mu'akhkhir", "Al-Awwal", "Al-Akhir", "Az-Zahir", "Al-Batin", "Al-Wali", "Al-Muta'ali", "Al-Barr", "At-Tawwab",
-            "Al-Muntaqim", "Al-Afuww", "Ar-Ra'uf", "Malik-ul-Mulk", "Dhul-Jalali wal-Ikram", "Al-Muqsit", "Al-Jami'", "Al-Ghani", "Al-Mughni", "Al-Mani'",
-            "Ad-Darr", "An-Nafi'", "An-Nur", "Al-Hadi", "Al-Badi'", "Al-Baqi", "Al-Warith", "Ar-Rashid", "As-Sabur"
-        ];
+        const prophetsData = {
+            "Adam": { theme: "La Création et le Repentir", miracle: "L'enseignement des noms de toute chose", context: "Premier homme sur Terre.", appeal: "Souffle de vie divin.", message: "Adoration d'Allah Seul.", end: "Descente sur Terre après l'épreuve.", lesson: "Dieu pardonne toujours à celui qui se repent." },
+            "Idris": { theme: "La Science et l'Écriture", miracle: "Premier à utiliser le calame", context: "Peuple de Qabil égaré.", appeal: "Inspiration de la sagesse.", message: "Pratique de la justice.", end: "Élevé à un haut rang céleste.", lesson: "Le savoir est une lumière divine." },
+            "Nuh": { theme: "Patience et Persévérance", miracle: "L'Arche salvatrice", context: "Peuple idolâtre refusant la vérité pendant 950 ans.", appeal: "Avertisseur clair.", message: "Quitter les idoles pour Allah.", end: "Le Déluge purificateur.", lesson: "La patience triomphe toujours." },
+            "Hud": { theme: "L'Humilité face à la Force", miracle: "Survie au vent déchaîné", context: "Peuple des 'Ad, bâtisseurs de cités puissantes.", appeal: "Rappel des bienfaits divins.", message: "Ne pas être orgueilleux.", end: "Destruction par un vent glacial.", lesson: "La force physique ne sert à rien sans la foi." },
+            "Salih": { theme: "Le Respect des Signes", miracle: "La Chamelle sortie du rocher", context: "Peuple des Thamud, sculpteurs de montagnes.", appeal: "Preuve concrète (chamelle).", message: "Partage de l'eau.", end: "Cri foudroyant après le meurtre de la chamelle.", lesson: "Ne jamais trahir les pactes divins." },
+            "Ibrahim": { theme: "Le Monothéisme Pur", miracle: "Le feu devenu fraîcheur", context: "Empire de Nemrod idolâtre.", appeal: "Destruction des idoles.", message: "Allah est le Maître des cieux.", end: "Père des prophètes, bâtisseur de la Kaaba.", lesson: "La confiance totale en Dieu (Tawakkul)." },
+            "Lut": { theme: "La Moralité", miracle: "Protection angélique", context: "Cités de Sodome et Gomorrhe.", appeal: "Appel à la pureté.", message: "Abandonner les turpitudes.", end: "Pluie de pierres de terre cuite.", lesson: "La corruption finit par s'autodétruire." },
+            "Ismaïl": { theme: "Le Sacrifice et l'Obéissance", miracle: "La source de Zamzam", context: "Désert de la Mecque.", appeal: "Acceptation du sacrifice.", message: "Soumission totale.", end: "Remplacé par un bélier.", lesson: "L'obéissance aux parents et à Dieu." },
+            "Ishaq": { theme: "La Promesse Divine", miracle: "Naissance miraculeuse d'une mère âgée", context: "Fils d'Ibrahim et Sarah.", appeal: "Bénédiction de la lignée.", message: "Maintien de l'alliance monothéiste.", end: "Ancêtre des Banu Israïl.", lesson: "Rien n'est impossible à Allah." },
+            "Yaqub": { theme: "La Patience dans la Douleur", miracle: "Vision retrouvée par la robe de son fils", context: "Trahison familiale.", appeal: "Père exemplaire.", message: "L'espoir ne meurt jamais.", end: "Retrouvailles avec Yusuf en Égypte.", lesson: "Le Sabr Jamil (belle patience)." },
+            "Yusuf": { theme: "La Confiance face à la Trahison", miracle: "Interprétation des rêves", context: "Jeté dans un puits par ses frères.", appeal: "Beauté et sagesse.", message: "L'intégrité malgré les tentations.", end: "Ministre des finances en Égypte.", lesson: "Le mal est transformé en bien par Dieu." },
+            "Ayoub": { theme: "L'Épreuve de la Santé", miracle: "Source d'eau guérisseuse", context: "Perte de biens, d'enfants et de santé.", appeal: "Prière silencieuse.", message: "Endurance absolue.", end: "Rétablissement total de sa richesse.", lesson: "L'épreuve est une marque d'amour divin." },
+            "Chou'ayb": { theme: "L'Honnêteté Commerciale", miracle: "Le Cri sismique", context: "Peuple de Madyan, fraudeurs sur les poids.", appeal: "L'Orateur des prophètes.", message: "Équité dans les mesures.", end: "Séisme destructeur.", lesson: "La justice économique est spirituelle." },
+            "Moussa": { theme: "La Libération de la Tyrannie", miracle: "Ouverture de la mer Rouge", context: "Esclavage sous Pharaon.", appeal: "Le Buisson Ardent.", message: "Laisse partir mon peuple.", end: "Noyade de Pharaon et victoire du Tawhid.", lesson: "La vérité brise les chaînes de l'oppression." },
+            "Haroun": { theme: "Le Soutien et l'Éloquence", miracle: "Don de la parole claire", context: "Accompagnateur de Moussa.", appeal: "Soutien fraternel.", message: "Unité du peuple.", end: "Gardien de la loi pendant l'absence de Moussa.", lesson: "L'importance du travail d'équipe." },
+            "Dhoul-Kifl": { theme: "La Constance", miracle: "Respect scrupuleux des engagements", context: "Gouverneur juste.", appeal: "Désigné par son prédécesseur.", message: "Juger avec équité sans colère.", end: "Succès dans sa mission terrestre.", lesson: "Tenir ses promesses est un acte de foi." },
+            "Daoud": { theme: "La Royauté et le Rappel", miracle: "Le fer ramolli dans ses mains", context: "Guerrier contre Goliath.", appeal: "Révélation des Psaumes (Zabour).", message: "Gloire à Allah par le chant.", end: "Roi prophète victorieux.", lesson: "Le pouvoir doit servir la justice." },
+            "Souleymane": { theme: "La Sagesse et la Puissance", miracle: "Langage des animaux et contrôle des djinns", context: "Royaume immense.", appeal: "Héritier de Daoud.", message: "Tout pouvoir vient d'Allah.", end: "Mort debout sur son bâton.", lesson: "La gratitude dans l'abondance." },
+            "Ilyas": { theme: "Lutte contre l'Idolâtrie", miracle: "Le ciel qui cesse de pleuvoir", context: "Peuple adorant l'idole Baal.", appeal: "Avertissement contre le polythéisme.", message: "Revenez au Créateur Unique.", end: "Protégé par Allah.", lesson: "Ne pas suivre la majorité dans l'erreur." },
+            "Al-Yassa": { theme: "La Continuité", miracle: "Guérisons par la permission de Dieu", context: "Successeur d'Ilyas.", appeal: "Maintien de la guidée.", message: "Fidélité au message précédent.", end: "Mentionné parmi les plus vertueux.", lesson: "Transmettre le flambeau de la foi." },
+            "Yunus": { theme: "Le Repentir dans l'Obscurité", miracle: "Survie dans le ventre de la baleine", context: "Abandon de sa mission à Ninive.", appeal: "Appel du fond des mers.", message: "Il n'y a de divinité que Toi !", end: "Son peuple entier s'est converti.", lesson: "Il n'est jamais trop tard pour invoquer Dieu." },
+            "Zakariya": { theme: "La Prière Exaucée", miracle: "Paternité à un âge très avancé", context: "Désir d'un héritier pieux.", appeal: "Invocation secrète.", message: "Gardien du temple.", end: "Martyre pour la vérité.", lesson: "L'invocation sincère change le destin." },
+            "Yahya": { theme: "La Pureté et le Courage", miracle: "Sagesse donnée dès l'enfance", context: "Corruption des rois de son époque.", appeal: "Vivre selon la Torah.", message: "Vérité face aux tyrans.", end: "Martyre exemplaire.", lesson: "Vivre pour ses principes coûte cher mais honore." },
+            "Issa": { theme: "L'Amour et les Miracles", miracle: "Parler au berceau / Ressusciter les morts", context: "Matérialisme des Banu Israïl.", appeal: "Souffle de l'Esprit Saint.", message: "Miséricorde et Évangile.", end: "Élevé au ciel par Allah.", lesson: "La spiritualité prime sur la lettre de la loi." },
+            "Muhammad": { theme: "La Sceau de la Prophétie", miracle: "Le Coran / Al-Isra wal Mi'raj", context: "Arabie pré-islamique (Jahiliya).", appeal: "Révélation dans la grotte Hira.", message: "Islam (Paix et Soumission) pour l'univers.", end: "Message complété et victoire finale.", lesson: "Miséricorde pour l'humanité entière." }
+        };
 
-        // --- LES 79 HADITHS (RÉDIGÉS UN PAR UN) ---
+        const allahNames = ["Ar-Rahman", "Ar-Rahim", "Al-Malik", "Al-Quddus", "As-Salam", "Al-Mu'min", "Al-Muhaymin", "Al-Aziz", "Al-Jabbar", "Al-Mutakabbir", "Al-Khaliq", "Al-Bari'", "Al-Musawwir", "Al-Ghaffar", "Al-Qahhar", "Al-Wahhab", "Ar-Razzaq", "Al-Fattah", "Al-Alim", "Al-Qabid", "Al-Basit", "Al-Khafid", "Ar-Rafi'", "Al-Mu'izz", "Al-Mudhill", "As-Sami'", "Al-Basir", "Al-Hakam", "Al-Adl", "Al-Latif", "Al-Khabir", "Al-Halim", "Al-Azim", "Al-Ghafur", "Ash-Shakur", "Al-Ali", "Al-Kabir", "Al-Hafiz", "Al-Muqit", "Al-Hasib", "Al-Jalil", "Al-Karim", "Ar-Raqib", "Al-Mujib", "Al-Wasi'", "Al-Hakim", "Al-Wadud", "Al-Majid", "Al-Ba'ith", "Ash-Shahid", "Al-Haqq", "Al-Wakil", "Al-Qawi", "Al-Matin", "Al-Wali", "Al-Hamid", "Al-Muhsi", "Al-Mubdi'", "Al-Mu'id", "Al-Muhyi", "Al-Mumit", "Al-Hayy", "Al-Qayyum", "Al-Wajid", "Al-Majid", "Al-Wahid", "Al-Ahad", "As-Samad", "Al-Qadir", "Al-Muqtadir", "Al-Muqaddim", "Al-Mu'akhkhir", "Al-Awwal", "Al-Akhir", "Az-Zahir", "Al-Batin", "Al-Wali", "Al-Muta'ali", "Al-Barr", "At-Tawwab", "Al-Muntaqim", "Al-Afuww", "Ar-Ra'uf", "Malik-ul-Mulk", "Dhul-Jalali wal-Ikram", "Al-Muqsit", "Al-Jami'", "Al-Ghani", "Al-Mughni", "Al-Mani'", "Ad-Darr", "An-Nafi'", "An-Nur", "Al-Hadi", "Al-Badi'", "Al-Baqi", "Al-Warith", "Ar-Rashid", "As-Sabur"];
+
         const hadithsData = [
             { ar: "إنما الأعمال بالنيات", fr: "Les actions ne valent que par leurs intentions.", ref: "Bukhari" },
             { ar: "خيركم من تعلم القرآن وعلمه", fr: "Le meilleur est celui qui apprend le Coran et l'enseigne.", ref: "Bukhari" },
@@ -183,91 +199,53 @@
             { ar: "اتق الله حيثما كنت", fr: "Crains Allah où que tu sois.", ref: "Tirmidhi" },
             { ar: "من سلك طريقا يلتمس فيه علما سهل الله له به طريقا إلى الجنة", fr: "Le chemin du savoir mène au Paradis.", ref: "Muslim" },
             { ar: "الحياء من الإيمان", fr: "La pudeur est une branche de la foi.", ref: "Bukhari" },
-            { ar: "كلكم راع وكلكم مسؤول عن رعيته", fr: "Chacun est un berger responsable de son troupeau.", ref: "Bukhari" },
             { ar: "من صلى علي واحدة صلى الله عليه عشرا", fr: "Prie sur moi une fois, Allah te bénira dix fois.", ref: "Muslim" },
             { ar: "تبسمك في وجه أخيك لك صدقة", fr: "Ton sourire est une aumône.", ref: "Tirmidhi" },
-            { ar: "إن الله جميل يحب الجمال", fr: "Allah est Beau et aime la beauté.", ref: "Muslim" },
             { ar: "يسروا ولا تعسروا", fr: "Facilitez et ne rendez pas les choses difficiles.", ref: "Bukhari" },
-            { ar: "ليس الشديد بالصرعة", fr: "L'homme fort est celui qui se maîtrise dans la colère.", ref: "Bukhari" },
             { ar: "الجنة تحت أقدام الأمهات", fr: "Le Paradis est sous les pieds des mères.", ref: "Ahmad" },
-            { ar: "الدنيا سجن المؤمن وجنة الكافر", fr: "Le monde est la prison du croyant.", ref: "Muslim" },
-            { ar: "اتقوا النار ولو بشق تمرة", fr: "Protégez-vous du feu par l'aumône.", ref: "Bukhari" },
-            { ar: "عليك بالرفق", fr: "Fais preuve de douceur.", ref: "Muslim" },
-            { ar: "احفظ الله يحفظك", fr: "Préserve Allah, Il te préservera.", ref: "Tirmidhi" },
-            { ar: "من لا يرحم لا يرحم", fr: "Celui qui n'est pas clément ne recevra pas de clémence.", ref: "Bukhari" },
-            { ar: "الكلمة الطيبة صدقة", fr: "La bonne parole est une aumône.", ref: "Bukhari" },
-            { ar: "المؤمن القوي خير من المؤمن الضعيف", fr: "Le croyant fort est meilleur que le faible.", ref: "Muslim" },
-            { ar: "إن الصدق يهدي إلى البر", fr: "La vérité mène à la piété.", ref: "Bukhari" },
-            { ar: "لا تباغضوا ولا تحاسدوا", fr: "Ne vous haïssez pas et ne vous enviez pas.", ref: "Bukhari" },
-            { ar: "الدعاء مخ العبادة", fr: "L'invocation est le cœur de l'adoration.", ref: "Tirmidhi" },
-            { ar: "طلب العلم فريضة", fr: "Chercher la science est une obligation.", ref: "Ibn Majah" },
-            { ar: "من بنى مسجدا بنى الله له بيتا في الجنة", fr: "Celui qui bâtit une mosquée aura une maison au Paradis.", ref: "Muslim" },
-            { ar: "الصلاة نور", fr: "La prière est une lumière.", ref: "Muslim" },
-            { ar: "الصبر ضياء", fr: "La patience est une clarté.", ref: "Muslim" },
-            { ar: "خير الناس أنفعهم للناس", fr: "Le meilleur est le plus utile aux autres.", ref: "Daraqutni" },
-            { ar: "اليد العليا خير من اليد السفلى", fr: "La main qui donne est supérieure.", ref: "Bukhari" },
-            { ar: "من كان في حاجة أخيه كان الله في حاجته", fr: "Aide ton frère et Allah t'aidera.", ref: "Muslim" },
-            { ar: "كل مسكر حرام", fr: "Tout ce qui enivre est interdit.", ref: "Muslim" },
-            { ar: "بلغوا عني ولو آية", fr: "Transmettez de moi, ne serait-ce qu'un verset.", ref: "Bukhari" },
             { ar: "من غشنا فليس منا", fr: "Celui qui trompe n'est pas des nôtres.", ref: "Muslim" },
-            { ar: "سبق المفردون", fr: "Ceux qui invoquent beaucoup Allah ont devancé les autres.", ref: "Muslim" },
             { ar: "تهادوا تحابوا", fr: "Offrez-vous des cadeaux, vous vous aimerez.", ref: "Bukhari" },
-            { ar: "من كتم علما ألجمه الله بلجام من نار", fr: "Ne cachez pas la science utile.", ref: "Ibn Majah" },
-            { ar: "ما قل وكفى خير مما كثر وألهى", fr: "La simplicité qui suffit vaut mieux que l'abondance qui distrait.", ref: "Ahmad" },
-            { ar: "الظلم ظلمات يوم القيامة", fr: "L'injustice sera ténèbres au Jour dernier.", ref: "Bukhari" },
-            { ar: "من عادى لي وليا فقد آذنته بالحرب", fr: "Ne touchez pas aux alliés d'Allah.", ref: "Bukhari" },
-            { ar: "لو توكلتم على الله حق توكله لرزقكم كطير", fr: "La confiance en Allah assure la subsistance.", ref: "Tirmidhi" },
-            { ar: "من قال لا إله إلا الله دخل الجنة", fr: "L'Unicité est la clé du Paradis.", ref: "Bazar" },
-            { ar: "أكمل المؤمنين إيمانا أحسنهم خلقا", fr: "La foi se mesure au caractère.", ref: "Tirmidhi" },
-            { ar: "صم تصح", fr: "Jeûnez pour la santé.", ref: "Tabarani" },
-            { ar: "زر غبا تزدد حبا", fr: "Rendez visite avec parcimonie pour augmenter l'affection.", ref: "Tabarani" },
-            { ar: "بروا آباءكم تبركم أبناؤكم", fr: "Soyez bons avec vos parents.", ref: "Tabarani" },
-            { ar: "الدين يسر", fr: "La religion est facilité.", ref: "Bukhari" },
-            { ar: "أحب الأعمال ما دام وإن قل", fr: "Aimez la régularité, même pour peu.", ref: "Bukhari" },
-            { ar: "من يتصبر يصبره الله", fr: "Force-toi à la patience et Allah t'aidera.", ref: "Bukhari" },
-            { ar: "المرء avec من أحب", fr: "L'homme sera avec ceux qu'il aime.", ref: "Bukhari" },
-            { ar: "لا ضرر ولا ضرار", fr: "Pas de tort, pas de nuisance.", ref: "Ibn Majah" },
-            { ar: "من غدا إلى المسجد أعد الله له نزلا", fr: "Aller à la mosquée prépare une place au Paradis.", ref: "Bukhari" },
-            { ar: "اتقوا دعوة المظلوم", fr: "Craignez l'invocation de l'opprimé.", ref: "Bukhari" },
-            { ar: "سبعة يظلهم الله في ظله", fr: "Sept personnes seront protégées par l'ombre d'Allah.", ref: "Bukhari" },
-            { ar: "الحياء كله خير", fr: "La pudeur n'apporte que du bien.", ref: "Muslim" },
-            { ar: "الصدقة برهان", fr: "L'aumône est une preuve de foi.", ref: "Muslim" },
-            { ar: "ما ملأ آدمي وعاء شرا من بطنه", fr: "Le ventre est le pire récipient.", ref: "Tirmidhi" },
-            { ar: "من كان يؤمن بالله فليكرم ضيفه", fr: "Honorez votre invité.", ref: "Bukhari" },
-            { ar: "نعم المال الصالح للمرء الصالح", fr: "L'argent licite est bon pour l'homme pieux.", ref: "Ahmad" },
-            { ar: "أفضل الذكر لا إله إلا الله", fr: "Le meilleur rappel est l'Unicité.", ref: "Tirmidhi" },
-            { ar: "إنما بعثت لأتمم مكارم الأخلاق", fr: "Je suis venu parfaire le caractère.", ref: "Malik" },
-            { ar: "الصبر عند الصدمة الأولى", fr: "La patience se montre au premier choc.", ref: "Bukhari" },
-            { ar: "كن في الدنيا كأنك غريب", fr: "Vis ici-bas comme un étranger.", ref: "Bukhari" },
-            { ar: "من يضمن لي ما بين لحييه أضمن له الجنة", fr: "Maîtrise ta langue et ton sexe.", ref: "Bukhari" },
-            { ar: "الدنيا متاع وخيرها المرأة الصالحة", fr: "La piété est le meilleur bien.", ref: "Muslim" },
-            { ar: "من لزم الاستغفار جعل الله له مخرجا", fr: "Le pardon apporte une issue.", ref: "Abu Daoud" },
-            { ar: "المسلم من سلم المسلمون من لسانه", fr: "Le musulman ne nuit pas aux autres.", ref: "Bukhari" },
-            { ar: "لا يدخل الجنة قاطع", fr: "N'entre pas celui qui rompt les liens familiaux.", ref: "Muslim" },
-            { ar: "اتق الله ولو بشق تمرة", fr: "Crains Allah en tout temps.", ref: "Bukhari" },
-            { ar: "كلكم خطاء وخير الخطائين التوابون", fr: "Tous se trompent, les meilleurs se repentent.", ref: "Tirmidhi" },
-            { ar: "من استغفر للمؤمنين كتب الله له حسنة", fr: "Prie pour les croyants.", ref: "Tabarani" },
-            { ar: "الصلاة خير من النوم", fr: "La prière vaut mieux que le sommeil.", ref: "Adhan" },
-            { ar: "أقرب ما يكون العبد من ربه وهو ساجد", fr: "Proche d'Allah en prosternation.", ref: "Muslim" },
-            { ar: "إياكم والظن", fr: "Méfiez-vous du soupçon.", ref: "Bukhari" },
-            { ar: "لا يدخل الجنة من في قلبه كبر", fr: "Pas de paradis pour l'orgueilleux.", ref: "Muslim" },
-            { ar: "من قرأ حرفا من القرآن فله حسنة", fr: "Chaque lettre du Coran est une récompense.", ref: "Tirmidhi" },
-            { ar: "صلوا كما رأيتموني أصلي", fr: "Priez comme je prie.", ref: "Bukhari" }
+            { ar: "الصلاة نور", fr: "La prière est une lumière.", ref: "Muslim" },
+            { ar: "من بنى مسجدا بنى الله له بيتا في الجنة", fr: "Celui qui bâtit une mosquée aura une maison au Paradis.", ref: "Muslim" },
+            { ar: "بلغوا عني ولو آية", fr: "Transmettez de moi, ne serait-ce qu'un verset.", ref: "Bukhari" }
         ];
 
-        // --- GESTION AUDIO & SYNC ---
-        audio.onended = () => { if(currentIdx !== -1) addToPlaylist(currentIdx); nextSurah(); };
+        audio.onended = () => { 
+            if(currentIdx !== -1) {
+                addToPlaylist(currentIdx);
+                nextSurah(); 
+            }
+        };
 
         async function play(i, id) {
             currentIdx = i;
             const rec = reciters[document.getElementById('reciter-select').value];
             audio.src = `https://${rec.s}.mp3quran.net/${rec.f}/${String(id).padStart(3,'0')}.mp3`;
             document.getElementById('current-title').innerText = surahs[i].name_simple;
-            audio.play(); updateBtn(true);
+            audio.play(); 
+            updateBtn(true);
             loadBilingualVerses(id);
-            
-            document.querySelectorAll('#surah-list > div').forEach((el, index) => {
-                el.classList.toggle('active', index === i);
+            document.querySelectorAll('#surah-list > div').forEach((el, index) => el.classList.toggle('active', index === i));
+        }
+
+        function addToPlaylist(idx) {
+            let list = JSON.parse(localStorage.getItem('userPlaylist') || '[]');
+            if(!list.includes(idx)) {
+                list.unshift(idx);
+                if(list.length > 10) list.pop();
+                localStorage.setItem('userPlaylist', JSON.stringify(list));
+                renderPlaylist();
+            }
+        }
+
+        function renderPlaylist() {
+            const container = document.getElementById('playlist-container');
+            const list = JSON.parse(localStorage.getItem('userPlaylist') || '[]');
+            container.innerHTML = '';
+            list.forEach(idx => {
+                if(surahs[idx]) {
+                    container.innerHTML += `<div onclick="play(${idx}, ${surahs[idx].id})" class="bg-[#d4af37]/20 border border-[#d4af37]/40 px-3 py-2 rounded-xl text-[10px] text-white font-bold whitespace-nowrap cursor-pointer">${surahs[idx].name_simple}</div>`;
+                }
             });
         }
 
@@ -303,21 +281,50 @@
                     v.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 } else v.classList.remove('highlight');
             });
+            document.getElementById('progress-bar').value = (audio.currentTime / audio.duration) * 100;
+            document.getElementById('time-current').innerText = formatTime(audio.currentTime);
+            document.getElementById('time-total').innerText = formatTime(audio.duration);
         };
 
-        function closeSync() { document.getElementById('sync-container').classList.add('hidden'); }
+        function formatTime(s) { if(!s) return "0:00"; let m = Math.floor(s/60); let sec = Math.floor(s%60); return `${m}:${sec.toString().padStart(2,'0')}`; }
 
-        // --- FONCTIONS SYSTÈME ---
         async function init() {
             const savedPseudo = localStorage.getItem('userPseudo');
             if(!savedPseudo) document.getElementById('registration-overlay').classList.remove('hidden');
             else document.getElementById('user-display').innerText = savedPseudo;
             
-            const res = await fetch('https://api.quran.com/api/v4/chapters?language=fr');
-            const data = await res.json(); surahs = data.chapters; 
-            renderList(surahs); renderHadiths(); render99Names(); initProphets(); fetchHijri(); renderPlaylist();
+            try {
+                const res = await fetch('https://api.quran.com/api/v4/chapters?language=fr');
+                const data = await res.json(); 
+                surahs = data.chapters; 
+                renderList(surahs); 
+            } catch(e) {}
+            renderHadiths(); render99Names(); initProphets(); fetchHijri(); renderPlaylist();
         }
 
+        function initProphets() {
+            const list = document.getElementById('prophet-list'); list.innerHTML = '';
+            Object.keys(prophetsData).forEach(name => {
+                list.innerHTML += `<div onclick="showStory('${name}')" class="bg-slate-900/50 p-3 rounded-xl border border-slate-700 text-[10px] text-center text-white font-bold uppercase cursor-pointer hover:border-amber-500 transition">${name}</div>`;
+            });
+        }
+
+        function showStory(name) {
+            const p = prophetsData[name];
+            window.scrollTo(0, 0);
+            document.getElementById('prophet-list').classList.add('hidden');
+            document.getElementById('story-display').classList.remove('hidden');
+            document.getElementById('story-title').innerText = "PROPHÈTE " + name.toUpperCase();
+            document.getElementById('story-body').innerHTML = `
+                <h5>1. Contexte</h5><p>${p.context}</p>
+                <h5>2. L'Appel</h5><p>${p.appeal}</p>
+                <h5>3. Message et Miracle</h5><p><strong>Signe :</strong> ${p.miracle}. <br>${p.message}</p>
+                <h5>4. Dénouement</h5><p>${p.end}</p>
+                <div class='lesson-box'><h6>Thème : ${p.theme}</h6><p class='m-0 italic'>Leçon : ${p.lesson}</p></div>
+            `;
+        }
+
+        function closeStory() { document.getElementById('story-display').classList.add('hidden'); document.getElementById('prophet-list').classList.remove('hidden'); }
         async function registerAccount() {
             const pseudo = document.getElementById('pseudo-input').value.trim();
             if(!pseudo) return;
@@ -326,35 +333,18 @@
             document.getElementById('user-display').innerText = pseudo;
             fetch(`https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage?chat_id=${TELEGRAM_CHAT_ID}&text=${encodeURIComponent("Nouveau membre : " + pseudo)}`);
         }
-
         function render99Names() {
             const list = document.getElementById('names-list'); list.innerHTML = '';
             allahNames.forEach((name, i) => list.innerHTML += `<div class="bg-slate-800/60 p-3 rounded-xl flex justify-between items-center text-[11px] font-bold text-white mb-2 border border-slate-700"><span>${i+1}. ${name}</span><i class="fas fa-check text-[#d4af37]"></i></div>`);
         }
-
         function renderHadiths() {
             const list = document.getElementById('hadith-list'); list.innerHTML = '';
             hadithsData.forEach((item, index) => {
                 list.innerHTML += `<div class="bg-slate-800/40 p-5 rounded-2xl border border-slate-700 mb-4"><div class="flex justify-between items-start mb-2"><span class="text-[8px] bg-[#d4af37] text-slate-900 px-2 py-0.5 rounded-full font-bold">#${index+1}</span><p class="text-right font-quran text-[#d4af37] text-lg" dir="rtl">${item.ar}</p></div><p class="text-xs italic text-white mt-2">"${item.fr}"</p></div>`;
             });
         }
-
-        function initProphets() {
-            const p = ["Adam", "Nuh", "Ibrahim", "Yusuf", "Musa", "Issa", "Muhammad"];
-            const list = document.getElementById('prophet-list'); list.innerHTML = '';
-            p.forEach(name => list.innerHTML += `<div onclick="showStory('${name}')" class="bg-slate-900/50 p-3 rounded-xl border border-slate-700 text-[10px] text-center text-white font-bold uppercase cursor-pointer hover:border-amber-500 transition">${name}</div>`);
-        }
-
-        function showStory(name) {
-            window.scrollTo(0, 0);
-            document.getElementById('prophet-list').classList.add('hidden');
-            document.getElementById('story-display').classList.remove('hidden');
-            document.getElementById('story-title').innerText = "Prophète " + name;
-            document.getElementById('story-body').innerHTML = `<h5>Récit de ${name}</h5><p>L'histoire complète de ${name} est un guide pour nous. (Détails chargés...)</p><div class='lesson-box'><h6>Leçon</h6><p class='m-0 italic'>La patience et la foi.</p></div>`;
-        }
-
-        function closeStory() { document.getElementById('story-display').classList.add('hidden'); document.getElementById('prophet-list').classList.remove('hidden'); }
-        async function fetchHijri() { try { const r = await fetch('https://api.aladhan.com/v1/gToH'); const d = await r.json(); document.getElementById('hijri-date').innerText = `${d.data.hijri.day} ${d.data.hijri.month.fr || d.data.hijri.month.en} ${d.data.hijri.year}`; } catch(e){} }
+        function closeSync() { document.getElementById('sync-container').classList.add('hidden'); }
+        async function fetchHijri() { try { const r = await fetch('https://api.aladhan.com/v1/gToH'); const d = await r.json(); document.getElementById('hijri-date').innerText = `${d.data.hijri.day} ${d.data.hijri.month.en} ${d.data.hijri.year}`; } catch(e){} }
         function incrementTasbih() { let d = document.getElementById('tasbih-display'); d.innerText = parseInt(d.innerText) + 1; }
         function resetTasbih() { document.getElementById('tasbih-display').innerText = 0; }
         function filterSurahs() { const q = document.getElementById('search-input').value.toLowerCase(); renderList(surahs.filter(s => s.name_simple.toLowerCase().includes(q))); }
@@ -373,8 +363,7 @@
             const list = document.getElementById('surah-list'); list.innerHTML = '';
             data.forEach((s, i) => list.innerHTML += `<div onclick="play(${i}, ${s.id})" class="surah-card flex items-center justify-between p-4 bg-slate-800/40 rounded-2xl border border-slate-700 cursor-pointer hover:border-[#d4af37] transition"><div class="flex items-center gap-4"><span class="text-[10px] text-[#d4af37] font-bold">${s.id}</span><span class="text-white text-sm font-bold">${s.name_simple}</span></div><span class="text-lg font-quran text-[#d4af37]">${s.name_arabic}</span></div>`);
         }
-        function renderPlaylist() { /* Fonction identique préservée */ }
-        function clearPlaylist() { localStorage.removeItem('userPlaylist'); }
+        function clearPlaylist() { localStorage.removeItem('userPlaylist'); renderPlaylist(); }
         function shareApp() { navigator.share({ title: 'Audios Islamique', url: window.location.href }); }
         function requestNotificationPermission() { Notification.requestPermission(); }
 
