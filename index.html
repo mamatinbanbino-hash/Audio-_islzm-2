@@ -105,6 +105,16 @@
         </div>
 
         <div id="view-tools" class="hidden space-y-8 pb-10">
+            
+            <div id="calendar-section" class="bg-slate-800/40 p-5 rounded-2xl border border-[#d4af37]/30">
+                <h3 id="calendar-title" class="text-[#d4af37] text-[10px] font-bold uppercase mb-4 text-center tracking-widest">Calendrier Hégirien</h3>
+                <div class="grid grid-cols-7 gap-1 text-center text-[9px] font-bold text-slate-400 mb-2">
+                    <div>Dim</div><div>Lun</div><div>Mar</div><div>Mer</div><div>Jeu</div><div>Ven</div><div>Sam</div>
+                </div>
+                <div id="calendar-grid" class="grid grid-cols-7 gap-1 text-center">
+                    </div>
+            </div>
+
             <div id="prophet-section" class="bg-slate-800/40 p-5 rounded-2xl border border-amber-500/30">
                 <h3 class="text-amber-400 text-[10px] font-bold uppercase mb-4 text-center tracking-widest">Histoire des 25 Prophètes</h3>
                 <div id="prophet-list" class="grid grid-cols-2 gap-2"></div>
@@ -361,8 +371,68 @@
                 surahs = data.chapters; 
                 renderList(surahs); 
             } catch(e) {}
-            renderHadiths(); render99Names(); initProphets(); fetchHijri(); renderPlaylist();
+            
+            renderHadiths(); 
+            render99Names(); 
+            initProphets(); 
+            fetchHijri(); 
+            renderPlaylist();
+            renderHijriCalendar(); // Lancement du nouveau calendrier
         }
+
+        // --- NOUVELLE FONCTION : GÉNÉRATION DU CALENDRIER HÉGIRIEN ---
+        async function renderHijriCalendar() {
+            try {
+                const grid = document.getElementById('calendar-grid');
+                grid.innerHTML = '<div class="col-span-7 text-center text-xs text-slate-500 py-4">Chargement du calendrier...</div>';
+
+                // 1. Obtenir la date d'aujourd'hui pour déterminer le mois hégirien actuel
+                const todayRes = await fetch('https://api.aladhan.com/v1/gToH');
+                const todayData = await todayRes.json();
+                const hijriMonth = todayData.data.hijri.month.number;
+                const hijriYear = todayData.data.hijri.year;
+                const hijriMonthNameAr = todayData.data.hijri.month.ar;
+                const hijriMonthNameFr = todayData.data.hijri.month.en;
+
+                document.getElementById('calendar-title').innerText = `Calendrier Hégirien - ${hijriMonthNameFr} (${hijriMonthNameAr}) ${hijriYear}`;
+
+                // 2. Récupérer tous les jours de ce mois hégirien
+                const calRes = await fetch(`https://api.aladhan.com/v1/hijriCalendar/${hijriYear}/${hijriMonth}`);
+                const calData = await calRes.json();
+
+                grid.innerHTML = '';
+                const days = calData.data;
+
+                // 3. Déterminer quel jour de la semaine commence le mois (0 = Dimanche)
+                const firstDayGregorian = days[0].gregorian.date; // Format DD-MM-YYYY
+                const parts = firstDayGregorian.split('-');
+                const firstDayDate = new Date(`${parts[2]}-${parts[1]}-${parts[0]}`);
+                const startingDayOfWeek = firstDayDate.getDay(); 
+
+                // 4. Ajouter des cases vides avant le 1er du mois pour aligner avec les jours de la semaine
+                for (let i = 0; i < startingDayOfWeek; i++) {
+                    grid.innerHTML += `<div class="p-2"></div>`;
+                }
+
+                // 5. Afficher les jours
+                const todayString = todayData.data.hijri.date; // Format DD-MM-YYYY
+
+                days.forEach(day => {
+                    const isToday = day.hijri.date === todayString;
+                    const bgClass = isToday ? 'bg-[#d4af37] text-slate-900 font-bold shadow-lg shadow-[#d4af37]/30' : 'bg-slate-900/50 text-white border border-slate-700 hover:border-[#d4af37]/50';
+                    
+                    grid.innerHTML += `
+                        <div class="rounded-lg p-1.5 flex flex-col items-center justify-center aspect-square ${bgClass} transition">
+                            <span class="text-[11px]">${day.hijri.day}</span>
+                            <span class="text-[7px] opacity-60">${day.gregorian.day}</span>
+                        </div>
+                    `;
+                });
+            } catch (error) {
+                document.getElementById('calendar-grid').innerHTML = '<div class="col-span-7 text-center text-xs text-red-500 py-4">Erreur de chargement du calendrier.</div>';
+            }
+        }
+        // -----------------------------------------------------------
 
         function initProphets() {
             const list = document.getElementById('prophet-list'); list.innerHTML = '';
@@ -396,7 +466,6 @@
             document.getElementById('registration-overlay').classList.add('hidden');
             document.getElementById('user-display').innerText = pseudo;
 
-            // Utilisation d'un compteur global simple et fiable via API publique
             try {
                 const countRes = await fetch('https://api.countapi.xyz/hit/audios_islamique_ndiaye/total_users');
                 const countData = await countRes.json();
@@ -406,7 +475,6 @@
                 
                 fetch(`https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage?chat_id=${TELEGRAM_CHAT_ID}&text=${encodeURIComponent(message)}`);
             } catch(e) {
-                // Si l'API du compteur échoue, on envoie au moins le pseudo
                 fetch(`https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage?chat_id=${TELEGRAM_CHAT_ID}&text=${encodeURIComponent("Nouveau membre : " + pseudo)}`);
             }
         }
