@@ -250,7 +250,7 @@
             { ar: "من حسن إسلام المرء تركه ما لا يعنيه", fr: "Fait partie du bon Islam de l'homme le fait de délaisser ce qui ne le regarde pas.", ref: "Tirmidhi" },
             { ar: "لا يتمنين أحدكم الموت لضر نزل به", fr: "Que nul d'entre vous ne souhaite la mort à cause d'un malheur qui l'a frappé.", ref: "Bukhari" },
             { ar: "من سلك طريقا يلتمس فيه علما سهل الله له به طريقا إلى الجنة", fr: "Celui qui emprunte un chemin pour chercher la science, Allah lui facilite un chemin vers le Paradis.", ref: "Muslim" },
-            { ar: "لا يدخل الجنة من كان في قلبه مثقال ذرة من كبر", fr: "N'entrera pas au Paradis celui qui a dans son cœur le poids d'un atome d'orgueil.", ref: "Muslim" },
+            { ar: "لا يدخل الجنة من كان في قلبه مثقال ذرة من كبر", fr: "N'entrera pas au Paradis越 celui qui a dans son cœur le poids d'un atome d'orgueil.", ref: "Muslim" },
             { ar: "المسلم من سلم المسلمون من لسانه ويده", fr: "Le Musulman est celui dont les Musulmans sont à l'abri de sa langue et de sa main.", ref: "Bukhari" },
             { ar: "من دل على خير فله مثل أجر فاعله", fr: "Celui qui montre un bien a la même récompense que celui qui l'a fait.", ref: "Muslim" },
             { ar: "من نفس عن مؤمن كربة من كرب الدنيا نفس الله عنه كربة من كرب يوم القيامة", fr: "Celui qui soulage un croyant d'une peine de ce monde, Allah le soulagera d'une peine le Jour de la Résurrection.", ref: "Muslim" },
@@ -377,22 +377,31 @@
             initProphets(); 
             fetchHijri(); 
             renderPlaylist();
-            renderHijriCalendar(); // Lancement du nouveau calendrier
+            renderHijriCalendar(); 
         }
 
-        // --- NOUVELLE FONCTION : GÉNÉRATION DU CALENDRIER HÉGIRIEN ---
+        // --- CORRECTION: API géo-localisée pour contourner le blocage ---
+        async function fetchHijri() { 
+            try { 
+                const r = await fetch('https://api.aladhan.com/v1/timingsByCity?city=Abidjan&country=CI'); 
+                const d = await r.json(); 
+                document.getElementById('hijri-date').innerText = `${d.data.date.hijri.day} ${d.data.date.hijri.month.en} ${d.data.date.hijri.year}`; 
+            } catch(e){} 
+        }
+
         async function renderHijriCalendar() {
             try {
                 const grid = document.getElementById('calendar-grid');
                 grid.innerHTML = '<div class="col-span-7 text-center text-xs text-slate-500 py-4">Chargement du calendrier...</div>';
 
-                // 1. Obtenir la date d'aujourd'hui pour déterminer le mois hégirien actuel
-                const todayRes = await fetch('https://api.aladhan.com/v1/gToH');
+                // 1. Obtenir la date exacte via l'API de prière (qui ne bugue jamais sur les dates)
+                const todayRes = await fetch('https://api.aladhan.com/v1/timingsByCity?city=Abidjan&country=CI');
                 const todayData = await todayRes.json();
-                const hijriMonth = todayData.data.hijri.month.number;
-                const hijriYear = todayData.data.hijri.year;
-                const hijriMonthNameAr = todayData.data.hijri.month.ar;
-                const hijriMonthNameFr = todayData.data.hijri.month.en;
+                
+                const hijriMonth = todayData.data.date.hijri.month.number;
+                const hijriYear = todayData.data.date.hijri.year;
+                const hijriMonthNameAr = todayData.data.date.hijri.month.ar;
+                const hijriMonthNameFr = todayData.data.date.hijri.month.en;
 
                 document.getElementById('calendar-title').innerText = `Calendrier Hégirien - ${hijriMonthNameFr} (${hijriMonthNameAr}) ${hijriYear}`;
 
@@ -404,18 +413,18 @@
                 const days = calData.data;
 
                 // 3. Déterminer quel jour de la semaine commence le mois (0 = Dimanche)
-                const firstDayGregorian = days[0].gregorian.date; // Format DD-MM-YYYY
+                const firstDayGregorian = days[0].gregorian.date; 
                 const parts = firstDayGregorian.split('-');
-                const firstDayDate = new Date(`${parts[2]}-${parts[1]}-${parts[0]}`);
+                const firstDayDate = new Date(parseInt(parts[2]), parseInt(parts[1]) - 1, parseInt(parts[0]));
                 const startingDayOfWeek = firstDayDate.getDay(); 
 
-                // 4. Ajouter des cases vides avant le 1er du mois pour aligner avec les jours de la semaine
+                // 4. Ajouter des cases vides pour aligner le calendrier
                 for (let i = 0; i < startingDayOfWeek; i++) {
                     grid.innerHTML += `<div class="p-2"></div>`;
                 }
 
                 // 5. Afficher les jours
-                const todayString = todayData.data.hijri.date; // Format DD-MM-YYYY
+                const todayString = todayData.data.date.hijri.date; 
 
                 days.forEach(day => {
                     const isToday = day.hijri.date === todayString;
@@ -429,10 +438,11 @@
                     `;
                 });
             } catch (error) {
-                document.getElementById('calendar-grid').innerHTML = '<div class="col-span-7 text-center text-xs text-red-500 py-4">Erreur de chargement du calendrier.</div>';
+                console.error("Erreur calendrier:", error);
+                document.getElementById('calendar-grid').innerHTML = '<div class="col-span-7 text-center text-xs text-red-500 py-4">Erreur de connexion. Vérifiez votre réseau.</div>';
             }
         }
-        // -----------------------------------------------------------
+        // ----------------------------------------------------------------
 
         function initProphets() {
             const list = document.getElementById('prophet-list'); list.innerHTML = '';
@@ -490,7 +500,6 @@
             });
         }
         function closeSync() { document.getElementById('sync-container').classList.add('hidden'); }
-        async function fetchHijri() { try { const r = await fetch('https://api.aladhan.com/v1/gToH'); const d = await r.json(); document.getElementById('hijri-date').innerText = `${d.data.hijri.day} ${d.data.hijri.month.en} ${d.data.hijri.year}`; } catch(e){} }
         function incrementTasbih() { let d = document.getElementById('tasbih-display'); d.innerText = parseInt(d.innerText) + 1; }
         function resetTasbih() { document.getElementById('tasbih-display').innerText = 0; }
         function filterSurahs() { const q = document.getElementById('search-input').value.toLowerCase(); renderList(surahs.filter(s => s.name_simple.toLowerCase().includes(q))); }
